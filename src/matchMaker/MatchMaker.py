@@ -1,7 +1,6 @@
-import json
-
-from Request import Request
 from utils.Utils import Utils
+
+from src.Request import Request
 
 
 class MatchMaker:
