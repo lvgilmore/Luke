@@ -1,15 +1,17 @@
-from utils.Utils import Utils
+from src.matchMaker.MatchMaker import MatchMaker
+from src.utils.JsonUtils import JsonUtils
 
 
 class BareMetal:
-    def __init__(self, json_to_convert):
-        barel_metal_object = self.convert_barel_metal_json(json_to_convert)
-        print barel_metal_object['cpu']
+    def __init__(self, bare_metal_str):
+        self.handle_new_bare_metal(bare_metal_str)
 
     @staticmethod
-    def convert_barel_metal_json(json_to_convert):
-        return Utils.convert_from_json_to_obj(json_to_convert)
+    def handle_new_bare_metal(bare_metal_str):
+        json_bare_metal = JsonUtils.convert_from_json_to_obj(bare_metal_str)
+
+        MatchMaker().find_match(json_bare_metal)
 
 
 if __name__ == "__main__":
-    req = BareMetal("{\"cpu\": 2}")
+    BareMetal("{\"name\": \"name1\", \"url\": \"url\"}")
