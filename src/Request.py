@@ -3,7 +3,11 @@ from src.utils.JsonUtils import JsonUtils
 
 class Request:
 
-    def __init__(self):
+    def __init__(self, requirements={}, os="Linux", **kwargs):
+        self.requirements = requirements
+        self.os = os
+        for key, value in kwargs:
+            self.__dict__[key] = value
         # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
         pass
