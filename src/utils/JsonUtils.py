@@ -1,3 +1,4 @@
+import io
 import json
 
 REQUESTS_FILE_NAME = "Requests.json"
@@ -12,21 +13,21 @@ class JsonUtils:
 
     @staticmethod
     def write_json_to_file(json_entry):
-        with open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='r') as f:
             feeds = json.load(f)
-        with open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='w') as f:
             feeds.append(json_entry)
             json.dump(feeds, f)
 
     @staticmethod
     def init_file():
         # init file with an empty list
-        with open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='w') as f:
             json.dump([], f)
 
     @staticmethod
     def read_json_from_file():
-        with open(REQUESTS_FILE_NAME, mode='r') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='r') as f:
             requests_data = json.load(f)
             return requests_data
 
@@ -39,7 +40,7 @@ class JsonUtils:
         :param score:
         :return:
         """
-        with open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='r') as f:
             requests = json.load(f)
 
             for request in requests:
@@ -50,5 +51,5 @@ class JsonUtils:
                     requests.append(temp)
                     break
 
-        with open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
+        with io.open(REQUESTS_FILE_NAME, mode='w') as f:
             json.dump(requests, f)

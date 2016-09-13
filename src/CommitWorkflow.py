@@ -6,33 +6,29 @@ Basic workflow to commit the MatchMaker decision
 @created: 11/09/2016
 """
 
-from logging import getLogger, WARNING
+from logging import getLogger
+
 from DHCPCommiter import DHCPCommiter
 from OSCommiters import *
 
+logger = getLogger(__name__)
 
 
-class CommitWorkflow():
+class CommitWorkflow(object):
     def __init__(self):
         self.dhcp_commiter = DHCPCommiter()
-        self.os_commiter = None
-        self.logger = getLogger(__name__)
 
-    def commit(self, **kwargs):
-        try:
-            host = kwargs["host"]
-            os = kwargs["os"]
-        except KeyError:
-            raise KeyError("CommitWorkflow.commit expects host and os kwargs")
-        if COMMITERS.has_key(os):
-            self.os_commiter = COMMITERS[os]["handler"]()
+    def commit(self, bare_metal, request):
+        if COMMITERS.has_key(request["os"]):
+            os_commiter = COMMITERS[request["os"]]["handler"]()
         else:
-            self.logger.log(WARNING, "could not reliably determine the os commiter")
+            logger.warning("could not reliably determine the os commiter")
 
-        self.dhcp_commiter.commit(**kwargs)
-        self.os_commiter.commit(**kwargs)
+        self.dhcp_commiter.commit(bare_metal, request)
+        os_commiter.commit(bare_metal, request)
 
 
+# move to test file
 if __name__ == "__main__":
     cw = CommitWorkflow()
     assert isinstance(cw.dhcp_commiter, DHCPCommiter)
