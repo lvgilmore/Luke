@@ -1,15 +1,28 @@
-from utils.Utils import Utils
+from src.utils.JsonUtils import JsonUtils
 
 
 class Request:
 
-    def __init__(self, json_to_convert):
-        request_object = self.convert_request_json(json_to_convert)
-        # print request_object['count']
+    def __init__(self):
+        # SHOULD RUN ONLY ONCE
+        # JsonUtils.init_file()
+        pass
 
     @staticmethod
-    def convert_request_json(json_to_convert):
-        return Utils.convert_from_json_to_obj(json_to_convert)
+    def handle_new_request(request_str):
+        # convert string request to json object
+        json_request = JsonUtils.convert_from_json_to_obj(request_str)
+
+        # add a request to file of all open requests
+        JsonUtils.write_json_to_file(json_request)
+
+    @staticmethod
+    def update_request_score(request, score):
+        JsonUtils.update_json_entry_with_score(request, score)
 
 if __name__ == "__main__":
-    req = Request("{\"count\": 4}")
+    req = Request()
+
+    entry = "{\"name\": \"name\", \"url\": \"url\"}"
+
+    req.handle_new_request(entry)
