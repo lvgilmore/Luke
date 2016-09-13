@@ -5,7 +5,7 @@ class Request:
 
     def __init__(self):
         # SHOULD RUN ONLY ONCE
-        # JsonUtils.init_file()
+        JsonUtils.init_file()
         pass
 
     @staticmethod
