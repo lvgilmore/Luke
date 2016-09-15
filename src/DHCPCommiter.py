@@ -8,7 +8,7 @@ This module manipulates the DHCP configuration file
 """
 
 from logging import getLogger, DEBUG
-from re import sub, split
+
 from src.OSCommiters.ICommiter import ICommiter
 from src.utils.Utils import Utils
 from src.utils.config import *

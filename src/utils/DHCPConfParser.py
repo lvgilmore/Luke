@@ -2,21 +2,18 @@
 
 """
 @author: Geiger
-@created: 11/09/2016
+@created: 13/09/2016
 """
-from re import sub, split
 from ipaddr import IPv4Network
+from re import split
+from re import sub
 
 
-class DHCPConfParser:
-    """
-    help class to pars the dhcpd.conf file
-    """
+class DHCPConfParser(object):
+    """help class to pars the dhcpd.conf file"""
 
     def __init__(self, conffile=None):
-        """
-        :param conffile: either a file or a file path
-        """
+        """:param conffile: either a file or a file path """
         if isinstance(conffile, file):
             self.conffile = conffile
         elif isinstance(conffile, str):
@@ -29,7 +26,6 @@ class DHCPConfParser:
         self.hosts = {}
         self.groups = {}
         self.shared_nets = {}
-        self.parse()
 
     def parse(self):
         confs = self._preformat()
@@ -58,9 +54,10 @@ class DHCPConfParser:
 
     def _preformat(self):
         raw_conf = split('(\n|\{|\}|;)', self.conffile.read())
-        for i in range(0, raw_conf.__len__()):
-            raw_conf[i] = sub('#.*$', '', raw_conf[i])
-            raw_conf[i] = sub('^\s+', '', raw_conf[i])
+        for index, content in enumerate(raw_conf):
+            raw_conf[index] = sub('#.*$', '', content)
+            raw_conf[index] = sub('^\s+', '', raw_conf[index])
+            raw_conf[index] = sub('\s+$', '', raw_conf[index])
         # clean empty entries
         try:
             while True:
@@ -69,12 +66,11 @@ class DHCPConfParser:
             pass
         return raw_conf
 
-
     @staticmethod
     def _parse_shared_network(confs):
         assert isinstance(confs[0], str) \
-               and confs[0].startswith('shared-network') \
-               and confs[1] == '{'
+            and confs[0].startswith('shared-network') \
+            and confs[1] == '{'
         shared_name = confs.pop(0).split()[1]
         shared_net = {'subnets': {},
                       'hosts': {},
@@ -101,8 +97,8 @@ class DHCPConfParser:
     @staticmethod
     def _parse_subnet(confs):
         assert isinstance(confs[0], str) \
-               and confs[0].startswith('subnet') \
-               and confs[1] == '{'
+            and confs[0].startswith('subnet') \
+            and confs[1] == '{'
         subnet_ip = IPv4Network("{}/{}".format(
             confs[0].split()[1], confs[0].split()[3]))
         subnet = {'hosts': {},
@@ -127,8 +123,8 @@ class DHCPConfParser:
     @staticmethod
     def _parse_host(confs):
         assert isinstance(confs[0], str) \
-               and confs[0].startswith('host') \
-               and confs[1] == '{'
+            and confs[0].startswith('host') \
+            and confs[1] == '{'
         host_name = confs.pop(0).split()[1]
         host = {'options': {}}
         confs.pop(0)
@@ -140,8 +136,13 @@ class DHCPConfParser:
 
     @staticmethod
     def _parse_option(confs):
-        assert isinstance(confs[0], str) \
-               and (confs[1] == '}' or confs[1] == ';')
+        try:
+            if confs[1] != ';':
+                raise ParseError(
+                    "expected separator ; after conf {}".format(confs[0]))
+        except IndexError:
+            raise IndexError("ended unexpectedly. expected ;")
+
         raw_option = confs.pop(0).split()
         if raw_option[0] in ["option"]:
             option_name = "{} {}".format(raw_option.pop(0), raw_option.pop(0))
@@ -157,8 +158,8 @@ class DHCPConfParser:
     @staticmethod
     def _parse_group(confs):
         assert isinstance(confs[0], str) \
-               and confs[0].startswith('group') \
-               and confs[1] == '{'
+            and confs[0].startswith('group') \
+            and confs[1] == '{'
         group_name = confs.pop(0).split()[1]
         group = {'subnets': {},
                  'hosts': {},
@@ -187,16 +188,15 @@ class DHCPConfParser:
         return group_name, group
 
 
-class ParseError(SyntaxError):
-    def __init__(self, *args, **kwargs):
-        SyntaxError.__init__(self, args, kwargs)
+class ParseError(Exception):
+    pass
 
 
 if __name__ == "__main__":
     parser = DHCPConfParser(conffile="../../resources/dhcp-example.conf")
     parser.parse()
     print(parser.globals)
-    print parser.groups
-    print parser.hosts
-    print parser.shared_nets
-    print parser.subnets
+    print(parser.groups)
+    print(parser.hosts)
+    print(parser.shared_nets)
+    print(parser.subnets)
