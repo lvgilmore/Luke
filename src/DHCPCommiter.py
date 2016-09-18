@@ -9,6 +9,11 @@ This module manipulates the DHCP configuration file
 
 from ipaddr import IPv4Network
 from logging import getLogger
+from os import getpid
+from os import kill
+from os import remove
+from os import system
+from random import uniform
 
 from src.OSCommiters.ICommiter import ICommiter
 from src.utils.DHCPConfParser import load as dhcp_load
@@ -16,15 +21,16 @@ from src.utils.DHCPConfParser import save as dhcp_save
 from src.utils.Utils import Utils
 from src.utils.config import *
 
+logger = getLogger(__name__)
+
 
 class DHCPCommiter(ICommiter):
     def __init__(self):
         self.dhcp_config_file = DHCP_CONF_FILE
-        self.logger = getLogger(__name__)
 
     def commit(self, bare_metal, request):
-        bare_metal = self._build_host(bare_metal)
-        request = self._build_os(request)
+        bare_metal = DHCPCommiter._build_host(bare_metal)
+        request = DHCPCommiter._build_os(request)
         self._lock_dhcp()
         dhcp_conf = dhcp_load(self.dhcp_config_file)
         dhcp_conf.add_host(subnet=bare_metal["subnet"],
@@ -32,8 +38,8 @@ class DHCPCommiter(ICommiter):
                                                               request))
         dhcp_save(configurations=dhcp_conf, conf_file=self.dhcp_config_file)
         self._release_dhcp()
-        # TODO: the actual part of adding the host configurations to the DHCP file
 
+    @staticmethod
     def _build_host(self, host):
         """
         this methods takes unstructured host dictionary
@@ -46,10 +52,11 @@ class DHCPCommiter(ICommiter):
         if host.has_key("ip") and not host.has_key("subnet"):
             host["subnet"] = Utils.ip_to_subnet(host["ip"])
         elif not host.has_key("subnet"):
-            self.logger.debug(
+            logger.debug(
                 "DHCPCommiter.commit was called without ip nor segment")
         return host
 
+    @staticmethod
     def _build_os(self, os):
         """
         like _build_host, this methods takes unstructured host dictionary
@@ -77,6 +84,42 @@ class DHCPCommiter(ICommiter):
         dhcp_host[hostname]["next-server"] = os["next-server"]
         dhcp_host[hostname]["filename"] = os["filename"]
 
+    def _lock_dhcp(self):
+        lock_file = self.dhcp_config_file + ".lock"
+        locker = {"pid": 0,
+                  "count": 0}
+        pid = getpid()
+        for i in range(0, 10):
+            try:
+                f = open(lock_file, 'r')
+                # check that there's no deadlock
+                temp = f.read()
+                if temp == locker["pid"]:
+                    locker["count"] += 1
+                if locker["count"] > 3:
+                    if system("ps -ef | grep ' {} ' | grep -vq grep"
+                                      .format(str(temp))) == 0:
+                        logger.warning("attempting to kill {}. "
+                                       "it holds lock for too long"
+                                       .format(str(temp)))
+                        kill(int(temp))
+                    else:
+                        logger.info("process {} locking dhcp but seems dead."
+                                    "deleting the lock file"
+                                    .format(str(temp)))
+                        remove(lock_file)
+                system("sleep {}".format(uniform(0, 1)))
+            except IOError:
+                f = open(lock_file, 'w')
+                f.write(str(pid))
+                f.close()
+                f = open(lock_file, 'r')
+                temp = f.read()
+                if int(temp) == int(pid):
+                    return True
+                else:
+                    logger.critical("lock failed miserably")
+                    raise IOError("lock failed miserably")
 
 
 class DHCPConfs(object):
@@ -100,3 +143,22 @@ class DHCPConfs(object):
 
     def add_host(self, subnet, host):
         pass
+
+    def _find_subnet(self, subnet, scope=self.__dict__):
+        """
+        finds if a subnet is defined in an object,
+        if so returns it
+        :param subnet: the subnet we look for
+        :type subnet: IPv4Network
+        :param scope: where to look
+        :type scope: dict
+        :return: path to the subnet
+        :rtype: dict
+        """
+        if "subnets" in scope and subnet in scope["subnets"]:
+            return scope["subnets"]
+        for i in scope.values():
+            path = self._find_subnet(subnet, i)
+            if path:
+                return path
+        return False
