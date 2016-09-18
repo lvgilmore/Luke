@@ -1,22 +1,16 @@
-from src.Request import Request
-from src.utils.JsonUtils import JsonUtils
-
-
 class MatchMaker:
 
     def __init__(self):
         pass
 
-    def find_match(self, bare_metal):
+    def find_match(self, bare_metal, req_list):
         """
         finds if there are equal keys and values in bare metal and in one of a requests
         if yes, updates the total curr_req_score of a specific request
         :param bare_metal:
+        :param req_list:
         :return:
         """
-        # read all requests from a file
-        # Move to API
-        req_list = JsonUtils.read_json_from_file()
 
         req_max_score = {'request': None, 'score': 0}
 
