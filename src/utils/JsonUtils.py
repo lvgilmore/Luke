@@ -45,7 +45,11 @@ def parse_requests_to_obj(requests):
 
 def parse_req(request):
     req = Request(request)
+
     for key in request.keys():
+        # req.__dict__.[key] = request.__dict__.get(key)
+        req[key] = request.__dict__.get(key)
+
         if key == REQUIREMENTS:
             req.requirements = request[key]
         elif key == OS:
