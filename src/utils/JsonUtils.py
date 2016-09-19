@@ -7,7 +7,7 @@ REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
 REQUIREMENTS = 'requirements'
 OS = 'os'
-OTHER = 'other'
+OTHER_PROP = 'other_prop'
 
 
 def convert_from_json_to_obj(obj_to_convert):
@@ -50,9 +50,8 @@ def parse_req(request):
             req.requirements = request[key]
         elif key == OS:
             req.os = request[key]
-        else:
+        elif key == OTHER_PROP:
             req.other_prop = request[key]
-
     return req
 
 

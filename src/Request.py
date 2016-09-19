@@ -7,6 +7,5 @@ class Request:
         self.requirements = None
         self.other_prop = None
         self.os = "Linux"
-        # self.creation_time = datetime.datetime.now()
-        # self.full_req = request_str + self.creation_time.strftime("%I:%M%p on %B %d, %Y")
+        self.creation_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
         self.full_req = request_str

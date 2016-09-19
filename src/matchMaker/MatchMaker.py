@@ -19,8 +19,7 @@ class MatchMaker:
         :return:
         """
 
-        best_match_req_list = []
-        max_score = 0
+        best_match_req = {'request': None, 'score': 0}
 
         for request in req_list:
             curr_req_score = 0
@@ -39,21 +38,14 @@ class MatchMaker:
                     if bare_metal[bare_metal_key] == request[bare_metal_key]:
                         curr_req_score += MatchMaker.calc_score(bare_metal_key)
 
-            # if total score of current request is bigger than the global value, update it
-            if curr_req_score > max_score:
-                # if list not empty
-                if best_match_req_list:
-                    # delete the values of the list
-                    del best_match_req_list[:]
-
-                # add a high scored req to list
-                best_match_req_list.append(request)
-                max_score = curr_req_score
-            elif max_score != 0 and curr_req_score == max_score:
-                best_match_req_list.append(request)
-                max_score = curr_req_score
-
-        return best_match_req_list
+            # compare by score
+            if curr_req_score > best_match_req['score']:
+                best_match_req = {'request': request, 'score': curr_req_score}
+            elif best_match_req['score'] != 0 and best_match_req['score'] == curr_req_score:
+                # compare by creation time
+                if request.creation_time > best_match_req['request'].creation_time:
+                    best_match_req = {'request': request, 'score': curr_req_score}
+        return best_match_req['request']
 
     @staticmethod
     def find_match_by_requirements(bare_metal, req_list):
