@@ -9,4 +9,4 @@ TODO: actually read configurations from standard format config gile
 
 DHCP_CONF_FILE = "/etc/dhcp/dhcp.conf"
 NEXT_SERVER = "192.168.0.2"
-TFTP_FILENAME= "pxelinux/pxelinux.0"
+TFTP_FILENAME = "pxelinux/pxelinux.0"

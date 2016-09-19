@@ -4,6 +4,7 @@
 @author: Geiger
 @created: 13/09/2016
 """
+from ipaddr import IPv4Address
 from ipaddr import IPv4Network
 from re import split
 from re import sub
@@ -16,7 +17,10 @@ def load(conffile):
                   "groups": {},
                   "globals": {},
                   }
-    confs = _preformat(conffile)
+    f = open(conffile)
+    confs = f.read()
+    f.close()
+    confs = _preformat(confs)
     while confs.__len__() > 0:
         conf = confs[0]
         if not isinstance(conf, str):
@@ -44,7 +48,7 @@ def load(conffile):
 
 
 def _preformat(conffile):
-    raw_conf = split('(\n|\{|\}|;)', conffile.read())
+    raw_conf = split('(\n|\{|\}|;)', conffile)
     for index, content in enumerate(raw_conf):
         raw_conf[index] = sub('#.*$', '', content)
         raw_conf[index] = sub('^\s+', '', raw_conf[index])
@@ -185,120 +189,138 @@ def save(configurations, conf_file):
     :type conf_file: file or str
     :return: None
     """
-    confs = {
-        "confstring": "",
-        "indent": 0,
-        "raw": None
-    }
+    confstring = ""
+    indent = 0
+    raw = None
+    if not isinstance(configurations, dict):
+        configurations = configurations.__dict__
     while configurations:
-        key, confs["raw"] = configurations.popitem()
-        if key == "options" or key == "globals":
-            confs = _build_options(confs)
+        if "options" in configurations:
+            raw = configurations.pop("options")
+            key = "options"
+        elif "globals" in configurations:
+            raw = configurations.pop("globals")
+            key = "options"
+        else:
+            key, raw = configurations.popitem()
+
+        if key == "options":
+            confstring, indent = _build_options(confstring, indent, raw)
         elif key == "subnets":
-            confs = _build_subnets(confs)
-        elif key == "shared_networks":
-            confs = _build_shared_networks(confs)
+            confstring, indent = _build_subnets(confstring, indent, raw)
+        elif key == "shared_networks" or key == "shared_nets":
+            confstring, indent = _build_shared_networks(confstring, indent, raw)
         elif key == "hosts":
-            confs = _build_hosts(confs)
+            confstring, indent = _build_hosts(confstring, indent, raw)
         elif key == "groups":
-            confs = _build_groups(confs)
+            confstring, indent = _build_groups(confstring, indent, raw)
         else:
             raise ParseError
     f = open(conf_file, 'w')
-    f.write(confs["confstring"])
+    f.write(confstring)
     f.close()
 
 
-def _build_options(confs):
-    while confs["raw"]:
-        key, value = confs["raw"].popitem()
-        confs["confstring"] += "\t" * confs["indent"]
-        confs["confstring"] += str(key) + " " + str(value) + ";\n"
-    return confs
+def _build_options(confstring, indent, raw):
+    for key, value in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += str(key) + " " + _value_str(value=value) + ";\n"
+    return confstring, indent
 
 
-def _build_subnets(confs):
-    subnet_name, subnet =confs["raw"]
-    confs["confstring"] += "\t" * confs["indent"]
-    ip, mask = IPv4Network(subnet_name).with_netmask.split("/")
-    confs["confstring"] += "subnet" + ip + "netmask" + mask + "{"
-    confs["indent"] += 1
-    while subnet:
-        key, confs["raw"] = subnet.popitem()
-        if key == "options" or key == "globals":
-            confs = _build_options(confs)
-        elif key == "hosts":
-            confs = _build_hosts(confs)
-        elif key == "groups":
-            confs = _build_groups(confs)
-        else:
-            raise ParseError
-    confs["indent"] -= 1
-    confs["confstring"] += "\t" * confs["indent"] + "}"
-    return confs
+def _value_str(value):
+    string = ""
+    if isinstance(value, str):
+        string += value
+    elif isinstance(value, list):
+        while value:
+            string += _value_str(value.pop(0)) + " "
+    else:
+        string += str(value)
+    return string
 
 
-def _build_shared_networks(confs):
-    sharednet_name, sharednet = confs["raw"]
-    confs["confstring"] += "\t" * confs["indent"]
-    confs["confstring"] += "shared-network" + sharednet_name + "{"
-    confs["indent"] += 1
-    while sharednet:
-        key, confs["raw"] = sharednet.popitem()
-        if key == "options" or key == "globals":
-            confs = _build_options(confs)
-        elif key == "hosts":
-            confs = _build_hosts(confs)
-        elif key == "groups":
-            confs = _build_groups(confs)
-        elif key == "subnets":
-            confs = _build_subnets(confs)
-        else:
-            raise ParseError
-    confs["indent"] -= 1
-    confs["confstring"] += "\t" * confs["indent"] + "}"
-    return confs
+def _build_subnets(confstring, indent, raw):
+    for subnet_name, subnet in raw.iteritems():
+        confstring += "\t" * indent
+        ip, mask = IPv4Network(subnet_name).with_netmask.split("/")
+        confstring += "subnet " + ip + " netmask " + mask + "{\n"
+        indent += 1
+        for key, value in subnet.iteritems():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
 
 
-def _build_hosts(confs):
-    hostname, host = confs["raw"]
-    confs["confstring"] += "\t" * confs["indent"]
-    confs["confstring"] += "host" + hostname + "{"
-    confs["indent"] += 1
-    while host:
-        key, confs["raw"] = host.popitem()
-        if key == "options" or key == "globals":
-            if not 'option hostname' in confs['options']:
-                confs['options']['option hostname'] = hostname
-            confs = _build_options(confs)
-        else:
-            raise ParseError
-    confs["indent"] -= 1
-    confs["confstring"] += "\t" * confs["indent"] + "}"
-    return confs
+def _build_shared_networks(confstring, indent, raw):
+    for sharednet_name, sharednet in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "shared-network " + sharednet_name + " {\n"
+        indent += 1
+        for key, value in sharednet.popitem():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
+            elif key == "subnets":
+                confstring, indent = _build_subnets(confstring, indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
 
-def _build_groups(confs):
-    group_name, group = confs["raw"]
-    confs["confstring"] += "\t" * confs["indent"]
-    confs["confstring"] += "group" + group_name + "{"
-    confs["indent"] += 1
-    while group:
-        key, confs["raw"] = group.popitem()
-        if key == "options" or key == "globals":
-            confs = _build_options(confs)
-        elif key == "hosts":
-            confs = _build_hosts(confs)
-        elif key == "groups":
-            confs = _build_groups(confs)
-        elif key == "subnets":
-            confs = _build_subnets(confs)
-        elif key == "shared-networks":
-            confs = _build_shared_networks(confs)
-        else:
-            raise ParseError
-    confs["indent"] -= 1
-    confs["confstring"] += "\t" * confs["indent"] + "}"
-    return confs
+
+def _build_hosts(confstring, indent, raw):
+    for hostname, host in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "host " + hostname + " {\n"
+        indent += 1
+        for key, value in host.iteritems():
+            if key == "options" or key == "globals":
+                if 'option hostname' not in value:
+                    value['option hostname'] = hostname
+                    confstring, indent = _build_options(confstring,
+                                                        indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
+
+
+def _build_groups(confstring, indent, raw):
+    for group_name, group in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "group " + group_name + " {\n"
+        indent += 1
+        for key, value in group.iteritems():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
+            elif key == "subnets":
+                confstring, indent = _build_subnets(confstring, indent, value)
+            elif key == "shared-networks":
+                confstring, indent = _build_shared_networks(confstring,
+                                                            indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
 
 
 class ParseError(Exception):
