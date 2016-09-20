@@ -190,6 +190,11 @@ class DHCPConfs(object):
             self.shared_nets = confs["shared_nets"]
 
     def add_host(self, subnet, host):
+        path = self._find_host(host=host)
+        if path:
+            logger.info("add_host {} requested, but already in file".format(
+                host))
+            path.pop(host.keys()[0])
         path = self._find_subnet(subnet=subnet)
         if len(host) != 1:
             raise TypeError
@@ -224,6 +229,28 @@ class DHCPConfs(object):
                 return path
         return False
 
+    def _find_host(self, host, scope=None):
+        """
+        like _find_subnet, but for hosts
+        :param subnet: the subnet we look for
+        :type subnet: IPv4Network
+        :param scope: where to look
+        :type scope: dict
+        :return: path to the subnet
+        :rtype: dict
+        """
+        if scope is None:
+            scope = self.__dict__
+        elif not isinstance(scope, dict):
+            return False
+        if "hosts" in scope and host.keys()[0] in scope["hosts"]:
+            return scope["hosts"]
+        for i in scope.values():
+            path = self._find_subnet(host, i)
+            if path:
+                return path
+        return False
+
 
 class LockError(Exception):
     pass
@@ -232,7 +259,7 @@ if __name__ == "__main__":
     dhc = DHCPCommiter("../resources/dhcp-example.conf")
     dhc.commit(bare_metal={"subnet": IPv4Network("192.168.0.1/24"),
                            "IP": IPv4Address("192.168.0.3"),
-                           "NICs": {"eth0": {"Mac": "00:11:22:33:44:55",
+                           "NICs": {"eth0": {"Mac": "00:11:22:33:44:66",
                                              "Speed": 100}
                                     }
                            },
