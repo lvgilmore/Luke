@@ -1,202 +1,338 @@
 #! /usr/bin/python2.7
 
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 @author: Geiger
-@created: 11/09/2016
+@created: 13/09/2016
 """
-from re import sub, split
 from ipaddr import IPv4Network
+from re import split
+from re import sub
+
+from src.utils.Utils import Utils
 
 
-class DHCPConfParser:
-    """
-    help class to pars the dhcpd.conf file
-    """
-
-    def __init__(self, conffile=None):
-        """
-        :param conffile: either a file or a file path
-        """
-        if isinstance(conffile, file):
-            self.conffile = conffile
-        elif isinstance(conffile, str):
-            self.conffile = open(conffile)
-        elif conffile is not None:
-            raise TypeError("unexpected type " + str(conffile.__class__))
-
-        self.globals = {}
-        self.subnets = {}
-        self.hosts = {}
-        self.groups = {}
-        self.shared_nets = {}
-        self.parse()
-
-    def parse(self):
-        confs = self._preformat()
-        while confs.__len__() > 0:
-            conf = confs[0]
-            assert isinstance(conf, str)
-            if conf.startswith('shared-network'):
-                k, v = DHCPConfParser._parse_shared_network(confs)
-                self.shared_nets[k] = v
-            elif conf.startswith('subnet'):
-                k, v = DHCPConfParser._parse_subnet(confs)
-                self.subnets[k] = v
-            elif conf.startswith('host'):
-                k, v = DHCPConfParser._parse_host(confs)
-                self.hosts[k] = v
-            elif conf.startswith('group'):
-                k, v = DHCPConfParser._parse_group(confs)
-                self.groups[k] = v
-            elif conf.startswith('{') or conf.startswith('}'):
-                raise ParseError(
-                    "unexpected word while parsing {}: {}".format(
-                        str(self.conffile), conf))
-            else:
-                k, v = DHCPConfParser._parse_option(confs)
-                self.globals[k] = v
-
-    def _preformat(self):
-        raw_conf = split('(\n|\{|\}|;)', self.conffile.read())
-        for i in range(0, raw_conf.__len__()):
-            raw_conf[i] = sub('#.*$', '', raw_conf[i])
-            raw_conf[i] = sub('^\s+', '', raw_conf[i])
-        # clean empty entries
-        try:
-            while True:
-                raw_conf.pop(raw_conf.index(''))
-        except ValueError:
-            pass
-        return raw_conf
+def load(conffile):
+    dhcp_confs = {"shared_nets": {},
+                  "subnets": {},
+                  "hosts": {},
+                  "groups": {},
+                  "globals": {},
+                  }
+    confs = Utils.open_read_close(conffile)
+    confs = _preformat(confs)
+    while confs.__len__() > 0:
+        conf = confs[0]
+        if not isinstance(conf, str):
+            raise TypeError("conf {} is {}. expected string".format(
+                conf, str(conf.__class__)))
+        if conf.startswith('shared-network'):
+            k, v = _parse_shared_network(confs)
+            dhcp_confs["shared_nets"][k] = v
+        elif conf.startswith('subnet'):
+            k, v = _parse_subnet(confs)
+            dhcp_confs["subnets"][k] = v
+        elif conf.startswith('host'):
+            k, v = _parse_host(confs)
+            dhcp_confs["hosts"][k] = v
+        elif conf.startswith('group'):
+            k, v = _parse_group(confs)
+            dhcp_confs["groups"][k] = v
+        elif conf.startswith('{') or conf.startswith('}'):
+            raise ParseError(
+                "unexpected word: {}".format(str(conf)))
+        else:
+            k, v = _parse_option(confs)
+            dhcp_confs["globals"][k] = v
+    return dhcp_confs
 
 
-    @staticmethod
-    def _parse_shared_network(confs):
-        assert isinstance(confs[0], str) \
-               and confs[0].startswith('shared-network') \
-               and confs[1] == '{'
-        shared_name = confs.pop(0).split()[1]
-        shared_net = {'subnets': {},
-                      'hosts': {},
-                      'groups': {},
-                      'options': {},
-                      }
-        confs.pop(0)
-        while confs[0] != '}':
-            if confs[0].startswith('subnet'):
-                k, v = DHCPConfParser._parse_subnet(confs)
-                shared_net['subnets'][k] = v
-            elif confs[0].startswith('host'):
-                k, v = DHCPConfParser._parse_host(confs)
-                shared_net['hosts'][k] = v
-            elif confs[0].startswith('group'):
-                k, v = DHCPConfParser._parse_group(confs)
-                shared_net['groups'][k] = v
-            else:
-                k, v = DHCPConfParser._parse_option(confs)
-                shared_net['options'][k] = v
-        confs.pop(0)
-        return shared_name, shared_net
+def _preformat(conffile):
+    raw_conf = split('(\n|\{|\}|;)', conffile)
+    for index, content in enumerate(raw_conf):
+        raw_conf[index] = sub('#.*$', '', content)
+        raw_conf[index] = sub('^\s+', '', raw_conf[index])
+        raw_conf[index] = sub('\s+$', '', raw_conf[index])
+    # clean empty entries
+    try:
+        while True:
+            raw_conf.pop(raw_conf.index(''))
+    except ValueError:
+        pass
+    return raw_conf
 
-    @staticmethod
-    def _parse_subnet(confs):
-        assert isinstance(confs[0], str) \
-               and confs[0].startswith('subnet') \
-               and confs[1] == '{'
-        subnet_ip = IPv4Network("{}/{}".format(
-            confs[0].split()[1], confs[0].split()[3]))
-        subnet = {'hosts': {},
+
+def _parse_shared_network(confs):
+    assert isinstance(confs[0], str) \
+        and confs[0].startswith('shared-network') \
+        and confs[1] == '{'
+    shared_name = confs.pop(0).split()[1]
+    shared_net = {'subnets': {},
+                  'hosts': {},
                   'groups': {},
                   'options': {},
                   }
-        confs.pop(0)
-        confs.pop(0)
-        while confs[0] != '}':
-            if confs[0].startswith('host'):
-                k, v = DHCPConfParser._parse_host(confs)
-                subnet['hosts'][k] = v
-            elif confs[0].startswith('group'):
-                k, v = DHCPConfParser._parse_group(confs)
-                subnet['groups'][k] = v
-            else:
-                k, v = DHCPConfParser._parse_option(confs)
-                subnet['options'][k] = v
-        confs.pop(0)
-        return subnet_ip, subnet
-
-    @staticmethod
-    def _parse_host(confs):
-        assert isinstance(confs[0], str) \
-               and confs[0].startswith('host') \
-               and confs[1] == '{'
-        host_name = confs.pop(0).split()[1]
-        host = {'options': {}}
-        confs.pop(0)
-        while confs[0] != '}':
-            k, v = DHCPConfParser._parse_option(confs)
-            host['options'][k] = v
-        confs.pop(0)
-        return host_name, host
-
-    @staticmethod
-    def _parse_option(confs):
-        assert isinstance(confs[0], str) \
-               and (confs[1] == '}' or confs[1] == ';')
-        raw_option = confs.pop(0).split()
-        if raw_option[0] in ["option"]:
-            option_name = "{} {}".format(raw_option.pop(0), raw_option.pop(0))
+    confs.pop(0)
+    while confs[0] != '}':
+        if confs[0].startswith('subnet'):
+            k, v = _parse_subnet(confs)
+            shared_net['subnets'][k] = v
+        elif confs[0].startswith('host'):
+            k, v = _parse_host(confs)
+            shared_net['hosts'][k] = v
+        elif confs[0].startswith('group'):
+            k, v = _parse_group(confs)
+            shared_net['groups'][k] = v
         else:
-            option_name = raw_option.pop(0)
-        if raw_option.__len__() == 1:
-            option = raw_option.pop(0)
+            k, v = _parse_option(confs)
+            shared_net['options'][k] = v
+    confs.pop(0)
+    return shared_name, shared_net
+
+
+def _parse_subnet(confs):
+    assert isinstance(confs[0], str) \
+        and confs[0].startswith('subnet') \
+        and confs[1] == '{'
+    subnet_ip = IPv4Network("{}/{}".format(
+        confs[0].split()[1], confs[0].split()[3]))
+    subnet = {'hosts': {},
+              'groups': {},
+              'options': {},
+              }
+    confs.pop(0)
+    confs.pop(0)
+    while confs[0] != '}':
+        if confs[0].startswith('host'):
+            k, v = _parse_host(confs)
+            subnet['hosts'][k] = v
+        elif confs[0].startswith('group'):
+            k, v = _parse_group(confs)
+            subnet['groups'][k] = v
         else:
-            option = raw_option
-        confs.pop(0)
-        return option_name, option
+            k, v = _parse_option(confs)
+            subnet['options'][k] = v
+    confs.pop(0)
+    return subnet_ip, subnet
 
-    @staticmethod
-    def _parse_group(confs):
-        assert isinstance(confs[0], str) \
-               and confs[0].startswith('group') \
-               and confs[1] == '{'
-        group_name = confs.pop(0).split()[1]
-        group = {'subnets': {},
-                 'hosts': {},
-                 'shared-networks': {},
-                 'options': {},
-                 'groups': {},
-                 }
-        confs.pop(0)
-        while confs[0] != '}':
-            if confs[0].startswith('subnet'):
-                k, v = DHCPConfParser._parse_subnet(confs)
-                group['subnets'][k] = v
-            elif confs[0].startswith('host'):
-                k, v = DHCPConfParser._parse_host(confs)
-                group['hosts'][k] = v
-            elif confs[0].startswith('shared-network'):
-                k, v = DHCPConfParser._parse_shared_network(confs)
-                group['shared-networks'][k] = v
-            elif confs[0].startswith('group'):
-                k, v = DHCPConfParser._parse_group(confs)
-                group['groups'][k] = v
+
+def _parse_host(confs):
+    assert isinstance(confs[0], str) \
+        and confs[0].startswith('host') \
+        and confs[1] == '{'
+    host_name = confs.pop(0).split()[1]
+    host = {'options': {}}
+    confs.pop(0)
+    while confs[0] != '}':
+        k, v = _parse_option(confs)
+        host['options'][k] = v
+    confs.pop(0)
+    return host_name, host
+
+
+def _parse_option(confs):
+    try:
+        if confs[1] != ';':
+            raise ParseError(
+                "expected separator ; after conf {}".format(confs[0]))
+    except IndexError:
+        raise ParseError("ended unexpectedly. expected ;")
+
+    raw_option = confs.pop(0).split()
+    if raw_option[0] in ["option"]:
+        option_name = "{} {}".format(raw_option.pop(0), raw_option.pop(0))
+    else:
+        option_name = raw_option.pop(0)
+    if raw_option.__len__() == 1:
+        option = raw_option.pop(0)
+    else:
+        option = raw_option
+    confs.pop(0)
+    return option_name, option
+
+
+def _parse_group(confs):
+    assert isinstance(confs[0], str) \
+        and confs[0].startswith('group') \
+        and confs[1] == '{'
+    group_name = confs.pop(0).split()[1]
+    group = {'subnets': {},
+             'hosts': {},
+             'shared-networks': {},
+             'options': {},
+             'groups': {},
+             }
+    confs.pop(0)
+    while confs[0] != '}':
+        if confs[0].startswith('subnet'):
+            k, v = _parse_subnet(confs)
+            group['subnets'][k] = v
+        elif confs[0].startswith('host'):
+            k, v = _parse_host(confs)
+            group['hosts'][k] = v
+        elif confs[0].startswith('shared-network'):
+            k, v = _parse_shared_network(confs)
+            group['shared-networks'][k] = v
+        elif confs[0].startswith('group'):
+            k, v = _parse_group(confs)
+            group['groups'][k] = v
+        else:
+            k, v = _parse_option(confs)
+            group['options'][k] = v
+    confs.pop(0)
+    return group_name, group
+
+
+def save(configurations, conf_file):
+    """
+    :type configurations: dict
+    :type conf_file: file or str
+    :return: None
+    """
+    confstring = ""
+    indent = 0
+    raw = None
+    if not isinstance(configurations, dict):
+        configurations = configurations.__dict__
+    while configurations:
+        if "options" in configurations:
+            raw = configurations.pop("options")
+            key = "options"
+        elif "globals" in configurations:
+            raw = configurations.pop("globals")
+            key = "options"
+        else:
+            key, raw = configurations.popitem()
+
+        if key == "options":
+            confstring, indent = _build_options(confstring, indent, raw)
+        elif key == "subnets":
+            confstring, indent = _build_subnets(confstring, indent, raw)
+        elif key == "shared_networks" or key == "shared_nets":
+            confstring, indent = _build_shared_networks(confstring, indent, raw)
+        elif key == "hosts":
+            confstring, indent = _build_hosts(confstring, indent, raw)
+        elif key == "groups":
+            confstring, indent = _build_groups(confstring, indent, raw)
+        else:
+            raise ParseError
+    f = open(conf_file, 'w')
+    f.write(confstring)
+    f.close()
+
+
+def _build_options(confstring, indent, raw):
+    for key, value in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += str(key) + " " + _value_str(value=value) + ";\n"
+    return confstring, indent
+
+
+def _value_str(value):
+    string = ""
+    if isinstance(value, str):
+        string += value
+    elif isinstance(value, list):
+        while value:
+            string += _value_str(value.pop(0)) + " "
+    else:
+        string += str(value)
+    return string
+
+
+def _build_subnets(confstring, indent, raw):
+    for subnet_name, subnet in raw.iteritems():
+        confstring += "\t" * indent
+        ip, mask = IPv4Network(subnet_name).with_netmask.split("/")
+        confstring += "subnet " + ip + " netmask " + mask + "{\n"
+        indent += 1
+        for key, value in subnet.iteritems():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
             else:
-                k, v = DHCPConfParser._parse_option(confs)
-                group['options'][k] = v
-        confs.pop(0)
-        return group_name, group
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
 
 
-class ParseError(SyntaxError):
-    def __init__(self, *args, **kwargs):
-        SyntaxError.__init__(self, args, kwargs)
+def _build_shared_networks(confstring, indent, raw):
+    for sharednet_name, sharednet in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "shared-network " + sharednet_name + " {\n"
+        indent += 1
+        for key, value in sharednet.popitem():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
+            elif key == "subnets":
+                confstring, indent = _build_subnets(confstring, indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
 
 
-if __name__ == "__main__":
-    parser = DHCPConfParser(conffile="../../resources/dhcp-example.conf")
-    parser.parse()
-    print(parser.globals)
-    print parser.groups
-    print parser.hosts
-    print parser.shared_nets
-    print parser.subnets
+def _build_hosts(confstring, indent, raw):
+    for hostname, host in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "host " + hostname + " {\n"
+        indent += 1
+        for key, value in host.iteritems():
+            if key == "options" or key == "globals":
+                if 'option hostname' not in value:
+                    value['option hostname'] = hostname
+                    confstring, indent = _build_options(confstring,
+                                                        indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
+
+
+def _build_groups(confstring, indent, raw):
+    for group_name, group in raw.iteritems():
+        confstring += "\t" * indent
+        confstring += "group " + group_name + " {\n"
+        indent += 1
+        for key, value in group.iteritems():
+            if key == "options" or key == "globals":
+                confstring, indent = _build_options(confstring, indent, value)
+            elif key == "hosts":
+                confstring, indent = _build_hosts(confstring, indent, value)
+            elif key == "groups":
+                confstring, indent = _build_groups(confstring, indent, value)
+            elif key == "subnets":
+                confstring, indent = _build_subnets(confstring, indent, value)
+            elif key == "shared-networks":
+                confstring, indent = _build_shared_networks(confstring,
+                                                            indent, value)
+            else:
+                raise ParseError
+        indent -= 1
+        confstring += "\t" * indent + "}\n"
+    return confstring, indent
+
+
+class ParseError(Exception):
+    pass
