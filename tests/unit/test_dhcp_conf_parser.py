@@ -14,33 +14,34 @@
 from os import remove
 import unittest
 
-from DHCPConfParser import DHCPConfParser
-from DHCPConfParser.DHCPConfParser import ParseError
+import src.utils.DHCPConfParser as DHCPConfParser
+from src.utils.DHCPConfParser import ParseError
 
 SAMPLE_FILE = "/tmp/dhcpd.conf"
+valid = """#this is line comment
+subnet 10.0.0.0 netmask 255.255.0.0 { #this is another comment
+\toption routers 10.0.0.1;
+}"""
+#        invalid = "#shity shit" \
+#                  "subnet 10.0.0.0 netmask {" \
+#                  "\t\t\t option routers 10.0.0.1"
 
 
 class TestParser(unittest.TestCase):
 
     def setUp(self):
 
-        valid = """#this is line comment
-                subnet 10.0.0.0 netmask 255.255.0.0 { #this is another comment
-                    \toption routers 10.0.0.1;
-               }"""
-#        invalid = "#shity shit" \
-#                  "subnet 10.0.0.0 netmask {" \
-#                  "\t\t\t option routers 10.0.0.1"
+
 
         with open(SAMPLE_FILE, 'w') as f:
             f.write(valid)
+            f.close()
 
     def tearDown(self):
         remove(SAMPLE_FILE)
 
     def test_preformat(self):
-        parser = DHCPConfParser(SAMPLE_FILE)
-        confs = parser._preformat()
+        confs = DHCPConfParser._preformat(valid)
         self.assertEqual(confs, ['subnet 10.0.0.0 netmask 255.255.0.0',
                                  '{', 'option routers 10.0.0.1', ';', '}'])
 
@@ -59,6 +60,8 @@ class TestParser(unittest.TestCase):
 
         self.assertRaises(ParseError, DHCPConfParser._parse_option,
                           ['shit 1'])
+
+#    def test_
 
 
 if __name__ == '__main__':

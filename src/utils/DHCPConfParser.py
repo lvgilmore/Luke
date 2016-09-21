@@ -16,10 +16,11 @@
 @author: Geiger
 @created: 13/09/2016
 """
-from ipaddr import IPv4Address
 from ipaddr import IPv4Network
 from re import split
 from re import sub
+
+from src.utils.Utils import Utils
 
 
 def load(conffile):
@@ -29,9 +30,7 @@ def load(conffile):
                   "groups": {},
                   "globals": {},
                   }
-    f = open(conffile)
-    confs = f.read()
-    f.close()
+    confs = Utils.open_read_close(conffile)
     confs = _preformat(confs)
     while confs.__len__() > 0:
         conf = confs[0]
@@ -148,7 +147,7 @@ def _parse_option(confs):
             raise ParseError(
                 "expected separator ; after conf {}".format(confs[0]))
     except IndexError:
-        raise IndexError("ended unexpectedly. expected ;")
+        raise ParseError("ended unexpectedly. expected ;")
 
     raw_option = confs.pop(0).split()
     if raw_option[0] in ["option"]:
