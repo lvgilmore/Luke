@@ -19,7 +19,7 @@ class CommitWorkflow(object):
         self.dhcp_commiter = DHCPCommiter()
 
     def commit(self, bare_metal, request):
-        if request["os"] in COMMITERS:
+        if "os" in request and request["os"] in COMMITERS:
             os_commiter = COMMITERS[request["os"]]["handler"]()
         else:
             logger.warning("could not reliably determine the os commiter")

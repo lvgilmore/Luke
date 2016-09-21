@@ -1,6 +1,10 @@
 #! /usr/bin/python2.7
 
 from ipaddr import IPv4Network
+from os import popen
+from re import sub
+
+DHCP_LOG_FILE = "/var/log/dhcpd.log"
 
 
 class Utils(object):
@@ -18,3 +22,22 @@ class Utils(object):
         temp = f.read()
         f.close()
         return temp
+
+    @staticmethod
+    def _locate_mac_in_log(locate_macs):
+        macs = []
+        log = popen("tail -500 {} | grep DHCPDISCOVER".format(
+            DHCP_LOG_FILE)).read().split('\n')
+        for line in log:
+            mac = sub(
+                r'^.*DHCPDISCOVER.*from '
+                r'(([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}).*',
+                r'\1',
+                line)
+            if mac in locate_macs:
+                macs.append(mac)
+        if len(macs) == 0:
+            logger.warning("couldn't find mac in dhcp log")
+            return False
+        else:
+            return macs[-1]
