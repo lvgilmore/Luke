@@ -29,11 +29,11 @@ from random import uniform
 from socket import gethostbyaddr
 from socket import herror
 
-from src.OSCommiters.ICommiter import ICommiter
-from src.utils.DHCPConfParser import load as dhcp_load
-from src.utils.DHCPConfParser import save as dhcp_save
-from src.utils.Utils import Utils
-from src.utils.config import *
+from Luke.OSCommiters.ICommiter import ICommiter
+from Luke.utils.DHCPConfParser import load as dhcp_load
+from Luke.utils.DHCPConfParser import save as dhcp_save
+from Luke.utils.Utils import Utils
+from Luke.utils.config import *
 
 logger = getLogger(__name__)
 

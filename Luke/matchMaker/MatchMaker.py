@@ -1,7 +1,7 @@
 from ConfigParser import SafeConfigParser, NoSectionError, ConfigParser, NoOptionError
 from logging import getLogger
 
-from src.utils.ConfFileUtil import ConfFileUtil
+from Luke.utils.ConfFileUtil import ConfFileUtil
 
 logger = getLogger(__name__)
 SECTION = 'asection'

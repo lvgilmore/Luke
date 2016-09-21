@@ -14,8 +14,8 @@
 from os import remove
 import unittest
 
-import src.utils.DHCPConfParser as DHCPConfParser
-from src.utils.DHCPConfParser import ParseError
+import Luke.utils.DHCPConfParser as DHCPConfParser
+from Luke.utils.DHCPConfParser import ParseError
 
 SAMPLE_FILE = "/tmp/dhcpd.conf"
 valid = """#this is line comment

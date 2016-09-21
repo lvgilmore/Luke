@@ -1,4 +1,4 @@
-from src.utils import JsonUtils
+from Luke.utils import JsonUtils
 
 
 class RequestList:
