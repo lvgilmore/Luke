@@ -7,7 +7,7 @@ OS = 'os'
 OTHER_PROP = 'other_prop'
 DEFAULT_OS = 'Linux'
 
-class Request:
+class Request(object):
 
     def __init__(self, request_str):
         json_req = json.loads(request_str)

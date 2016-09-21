@@ -1,10 +1,10 @@
-from src.Request import REQUIREMENTS, OTHER_PROP, OS
-from src.utils import JsonUtils
+from Luke.Request import REQUIREMENTS, OTHER_PROP, OS
+from Luke.utils import JsonUtils
 
 CREATION_TIME = 'creation_time'
 
 
-class RequestList:
+class RequestList(object):
 
     def __init__(self):
         pass
