@@ -14,7 +14,7 @@
 import io
 import json
 
-from src.Request import Request
+from Luke.Request import Request
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'

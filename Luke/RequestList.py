@@ -1,7 +1,7 @@
-from src.utils import JsonUtils
+from Luke.utils import JsonUtils
 
 
-class RequestList:
+class RequestList(object):
 
     def __init__(self):
         pass

@@ -11,7 +11,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class BareMetal:
+
+class BareMetal(object):
     def __init__(self, bare_metal_str):
         self.bare_metal = bare_metal_str
 

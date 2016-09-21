@@ -14,8 +14,8 @@
 from os import remove
 import unittest
 
-import src.utils.DHCPConfParser as DHCPConfParser
-from src.utils.DHCPConfParser import ParseError
+import Luke.utils.DHCPConfParser as DHCPConfParser
+from Luke.utils.DHCPConfParser import ParseError
 
 SAMPLE_FILE = "/tmp/dhcpd.conf"
 valid = """#this is line comment
@@ -30,9 +30,6 @@ subnet 10.0.0.0 netmask 255.255.0.0 { #this is another comment
 class TestParser(unittest.TestCase):
 
     def setUp(self):
-
-
-
         with open(SAMPLE_FILE, 'w') as f:
             f.write(valid)
             f.close()

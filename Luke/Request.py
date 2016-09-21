@@ -1,7 +1,7 @@
 import datetime
 
 
-class Request:
+class Request(object):
 
     def __init__(self, request_str):
         self.requirements = None

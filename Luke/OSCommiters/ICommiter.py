@@ -7,12 +7,12 @@ Interface for specific OS commiters
 """
 
 
-class ICommiter:
+class ICommiter(object):
     def __init__(self):
         pass
 
     def commit(self, **kwargs):
-        """
+        """commits decision
 
         :param kwargs: dict
          :param host: Host
