@@ -1,7 +1,7 @@
 from ConfigParser import SafeConfigParser
 
 
-class ConfFileUtil:
+class ConfFileUtil(object):
 
     @staticmethod
     def read_from_conf_file(conf_file):

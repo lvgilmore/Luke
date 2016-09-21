@@ -30,9 +30,6 @@ subnet 10.0.0.0 netmask 255.255.0.0 { #this is another comment
 class TestParser(unittest.TestCase):
 
     def setUp(self):
-
-
-
         with open(SAMPLE_FILE, 'w') as f:
             f.write(valid)
             f.close()

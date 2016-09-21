@@ -195,7 +195,8 @@ def _parse_group(confs):
 
 
 def save(configurations, conf_file):
-    """
+    """translate dict to dhcp.conf string and saves
+
     :type configurations: dict
     :type conf_file: file or str
     :return: None
@@ -220,7 +221,8 @@ def save(configurations, conf_file):
         elif key == "subnets":
             confstring, indent = _build_subnets(confstring, indent, raw)
         elif key == "shared_networks" or key == "shared_nets":
-            confstring, indent = _build_shared_networks(confstring, indent, raw)
+            confstring, indent = _build_shared_networks(
+                confstring, indent, raw)
         elif key == "hosts":
             confstring, indent = _build_hosts(confstring, indent, raw)
         elif key == "groups":

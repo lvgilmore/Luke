@@ -7,7 +7,7 @@ class Utils(object):
 
     @staticmethod
     def ip_to_subnet(ip="0.0.0.0"):
-        ip = IPv4Network(ip)  # now it doesn't matter if we got ip as address, network or string
+        ip = IPv4Network(ip)  # works the same for address, network and string
         if ip.prefixlen == 32:
             ip = IPv4Network(ip.__str__() + "/24")
         return ip

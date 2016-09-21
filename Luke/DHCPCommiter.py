@@ -19,7 +19,8 @@ This module manipulates the DHCP configuration file
 @created: 11/09/2016
 """
 
-from ipaddr import IPv4Network, IPv4Address
+from ipaddr import IPv4Address
+from ipaddr import IPv4Network
 from logging import getLogger
 from os import getpid
 from os import kill
@@ -30,10 +31,12 @@ from socket import gethostbyaddr
 from socket import herror
 
 from Luke.OSCommiters.ICommiter import ICommiter
+from Luke.utils.config import DHCP_CONF_FILE
+from Luke.utils.config import NEXT_SERVER
+from Luke.utils.config import TFTP_FILENAME
 from Luke.utils.DHCPConfParser import load as dhcp_load
 from Luke.utils.DHCPConfParser import save as dhcp_save
 from Luke.utils.Utils import Utils
-from Luke.utils.config import *
 
 logger = getLogger(__name__)
 
@@ -50,16 +53,16 @@ class DHCPCommiter(ICommiter):
             dhcp_conf.add_host(subnet=bare_metal["subnet"],
                                host=DHCPCommiter._build_dhcp_host(bare_metal,
                                                                   request))
-            dhcp_save(configurations=dhcp_conf, conf_file=self.dhcp_config_file)
+            dhcp_save(configurations=dhcp_conf,
+                      conf_file=self.dhcp_config_file)
         else:
             logger.error("couldn't get lock on dhcp. very sad. tears")
         self._release_dhcp()
 
     @staticmethod
     def _build_host(host):
-        """
-        this methods takes unstructured host dictionary
-        and makes it structured
+        """this methods takes unstructured host dictionary and makes it structured
+
         :param host: unstructured host
         :type host: dict
         :return: structured host
@@ -90,18 +93,17 @@ class DHCPCommiter(ICommiter):
 
     @staticmethod
     def _build_os(os):
-        """
-        like _build_host, this methods takes unstructured host dictionary
-        and makes it structured
+        """like _build_host, but for os
+
         :param host: unstructured os and related info
         :type host: dict
         :return: structured os and related info
         :rtype: dict
         """
         assert isinstance(os, dict)
-        if not os.has_key("next server"):
+        if "next server" not in os:
             os["next-server"] = NEXT_SERVER
-        if not os.has_key("filename"):
+        if "filename" not in os:
             os["filename"] = TFTP_FILENAME
         return os
 
@@ -117,7 +119,8 @@ class DHCPCommiter(ICommiter):
             dhcp_host[hostname]["options"]["hardware"].append(
                 "ethernet " + str(nic["Mac"]))
             if "IP" in nic:
-                dhcp_host[hostname]["options"]["fixed-address"].append(nic["IP"])
+                dhcp_host[hostname]["options"]["fixed-address"].append(
+                    nic["IP"])
         dhcp_host[hostname]["options"]["next-server"] = os["next-server"]
         dhcp_host[hostname]["options"]["filename"] = os["filename"]
         return dhcp_host
@@ -130,7 +133,8 @@ class DHCPCommiter(ICommiter):
             try:
                 f = open(lock_file, 'r')
                 f.close()
-                locker = self._check_deadlock(locker=locker, lock_file=lock_file)
+                locker = self._check_deadlock(locker=locker,
+                                              lock_file=lock_file)
                 system("sleep {}".format(uniform(0, 1)))
             except IOError:
                 # lock DHCP
@@ -184,10 +188,6 @@ class DHCPCommiter(ICommiter):
 
 class DHCPConfs(object):
     def __init__(self, confs=None):
-        """
-        :type confs: dict
-        :param confs: output of DHCPConfParser.parse()
-        """
         if confs is None:
             self.globals = {}
             self.subnets = {}
@@ -219,9 +219,8 @@ class DHCPConfs(object):
             self.hosts[k] = v
 
     def _find_subnet(self, subnet, scope=None):
-        """
-        finds if a subnet is defined in an object,
-        if so returns it
+        """finds if a subnet is defined in an object, if so returns it
+
         :param subnet: the subnet we look for
         :type subnet: IPv4Network
         :param scope: where to look
@@ -242,8 +241,8 @@ class DHCPConfs(object):
         return False
 
     def _find_host(self, host, scope=None):
-        """
-        like _find_subnet, but for hosts
+        """like _find_subnet, but for hosts
+
         :param subnet: the subnet we look for
         :type subnet: IPv4Network
         :param scope: where to look

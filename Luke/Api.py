@@ -1,11 +1,11 @@
 from Luke.BareMetal import BareMetal
+from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.Request import Request
 from Luke.RequestList import RequestList
-from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.utils import JsonUtils
 
 
-class Api:
+class Api(object):
 
     def __init__(self):
         # SHOULD RUN ONLY ONCE
@@ -21,7 +21,8 @@ class Api:
         best_match_request = None
         match_maker = MatchMaker()
 
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(bare_metal.bare_metal)
+        json_bare_metal = JsonUtils.convert_from_json_to_obj(
+            bare_metal.bare_metal)
 
         # read all requests from a file
         req_list = JsonUtils.read_json_from_file()
@@ -37,17 +38,24 @@ class Api:
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-                print best_match_request.full_req
+                print(best_match_request.full_req)
         else:
-            print "no best match found"
+            print("no best match found")
 
 if __name__ == "__main__":
 
     api = Api()
     api.handle_new_request(Request("{\"other_prop\": {\"name\": \"name1\"}}"))
-    api.handle_new_request(Request("{\"requirements\": {\"cpu\": \"cpu\", \"name1\": \"name1\", \"id1\": \"id1\"},"
+    api.handle_new_request(Request("{\"requirements\": {\"cpu\": \"cpu\","
+                                   " \"name1\": \"name1\",  \"id1\": \"id1\"},"
                                    " \"os\": \"Windows\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\", \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\", \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name\", \"url\": \"url\", \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-    api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\", \"id\": \"id1\", \"os\": \"os\"}"))
+    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
+                                   " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
+    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
+                                   " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
+    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name\","
+                                   " \"url\": \"url\", \"id\": \"id1\"},"
+                                   " \"os\": \"Linux\"}"))
+    api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\","
+                                        " \"id\": \"id1\","
+                                        " \"os\": \"os\"}"))

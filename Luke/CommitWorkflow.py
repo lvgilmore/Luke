@@ -9,7 +9,7 @@ Basic workflow to commit the MatchMaker decision
 from logging import getLogger
 
 from DHCPCommiter import DHCPCommiter
-from OSCommiters import *
+from OSCommiters import COMMITERS
 
 logger = getLogger(__name__)
 
@@ -19,7 +19,7 @@ class CommitWorkflow(object):
         self.dhcp_commiter = DHCPCommiter()
 
     def commit(self, bare_metal, request):
-        if COMMITERS.has_key(request["os"]):
+        if request["os"] in COMMITERS:
             os_commiter = COMMITERS[request["os"]]["handler"]()
         else:
             logger.warning("could not reliably determine the os commiter")
@@ -29,8 +29,10 @@ class CommitWorkflow(object):
 
 
 # move to test file
+"""
 if __name__ == "__main__":
     cw = CommitWorkflow()
     assert isinstance(cw.dhcp_commiter, DHCPCommiter)
     cw.commit(host={"ip": "192.168.0.1/24"}, os="Rory")
     assert isinstance(cw.os_commiter, RoryCommiter)
+"""
