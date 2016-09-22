@@ -1,3 +1,16 @@
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from ConfigParser import NoOptionError
 from ConfigParser import NoSectionError
 from logging import getLogger
@@ -5,15 +18,14 @@ from logging import getLogger
 from Luke.utils.ConfFileUtil import ConfFileUtil
 
 logger = getLogger(__name__)
-SECTION = 'asection'
-
+SCORES_FILE = '../resources/scores.conf'
 
 class MatchMaker(object):
 
     def __init__(self):
         # read scores from file
-        self.parser = ConfFileUtil.read_from_conf_file(
-            '../resources/scores.conf')
+        self.parser = ConfFileUtil.read_from_conf_file(SCORES_FILE)
+
 
     def find_match_by_all_values(self, bare_metal, req_list):
 
@@ -32,13 +44,13 @@ class MatchMaker(object):
         for request in req_list:
             curr_req_score = 0
             for bare_metal_key in bare_metal.keys():
-                if request.requirements is not None and \
+                if request.requirements and \
                         bare_metal_key in request.requirements and\
                         bare_metal[bare_metal_key] \
                         == request.requirements[bare_metal_key]:
                     curr_req_score += self.calc_score(bare_metal_key)
 
-                elif request.other_prop is not None and\
+                elif request.other_prop and\
                         bare_metal_key in request.other_prop and\
                         bare_metal[bare_metal_key] \
                         == request.other_prop[bare_metal_key]:
@@ -87,19 +99,10 @@ class MatchMaker(object):
 
         return matched_req_by_requirements
 
-    # TODO(Yulia) decide what we prefer:
-    # there is another option, to use sections, and declare a default section,
-    # so when the score is not declared, it will search it in defaule section
-    # and init score with 0
     def calc_score(self, key):
         score = 0
-
         try:
-            score = int(self.parser.get(SECTION, key))
-        except NoSectionError as nse:
-            print("calc_score: " + "NoSectionError " + nse.message)
-        except NoOptionError as noe:
-            print("calc_score: " + "NoOptionError" + noe.message)
+            score = int(self.parser.get_option(key))
         except ValueError as ve:
             print("calc_score: " + "ValueError " + ve.message)
 
