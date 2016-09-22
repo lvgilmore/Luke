@@ -14,13 +14,13 @@
 import io
 import json
 
+from Luke.Request import OS
+from Luke.Request import OTHER_PROP
 from Luke.Request import Request
+from Luke.Request import REQUIREMENTS
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
-REQUIREMENTS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
 
 
 def convert_from_json_to_obj(obj_to_convert):
@@ -57,7 +57,7 @@ def parse_requests_to_obj(requests):
 
 
 def parse_req(request):
-    req = Request(request)
+    req = Request(json.dumps(request))
     for key in request.keys():
         if key == REQUIREMENTS:
             req.requirements = request[key]
@@ -66,27 +66,3 @@ def parse_req(request):
         elif key == OTHER_PROP:
             req.other_prop = request[key]
     return req
-
-
-# there is no need in this function, delete it later
-# def update_json_entry_with_score(request_to_update, score):
-#     """
-#     reads a content of a file, finds the given request and
-#     updates this entry with score value
-#     :param request_to_update:
-#     :param score:
-#     :return:
-#     """
-#     with io.open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
-#         requests = json.load(f)
-#
-#         for request in requests:
-#             if request == request_to_update:
-#                 temp = request_to_update
-#                 temp[SCORE_KEY] = score
-#                 requests.pop(requests.index(request))
-#                 requests.append(temp)
-#                 break
-#
-#     with io.open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
-#         json.dump(requests, f)
