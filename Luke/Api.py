@@ -65,4 +65,3 @@ if __name__ == "__main__":
     api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\","
                                         " \"id\": \"id1\","
                                         " \"os\": \"os\"}"))
-

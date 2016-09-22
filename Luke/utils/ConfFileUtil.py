@@ -11,9 +11,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
+from ConfigParser import NoOptionError
+from ConfigParser import NoSectionError
+from ConfigParser import SafeConfigParser
 
 FAKE_SECTION = 'asection'
+
 
 class ConfFileUtil(SafeConfigParser):
 
@@ -22,9 +25,9 @@ class ConfFileUtil(SafeConfigParser):
         try:
             res = self.get(FAKE_SECTION, option, raw, vars)
         except NoSectionError as nse:
-            print "calc_score: " + "NoSectionError " + nse.message
+            print("calc_score: " + "NoSectionError " + nse.message)
         except NoOptionError as noe:
-            print "calc_score: " + "NoOptionError " + noe.message
+            print("calc_score: " + "NoOptionError " + noe.message)
         return res
 
     @staticmethod
@@ -38,6 +41,7 @@ class FakeSectionHead(object):
     def __init__(self, fp):
         self.fp = fp
         self.sechead = '['+FAKE_SECTION + ']\n'
+
     def readline(self):
         if self.sechead:
             try:

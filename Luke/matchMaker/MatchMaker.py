@@ -11,8 +11,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConfigParser import NoOptionError
-from ConfigParser import NoSectionError
 from logging import getLogger
 
 from Luke.utils.ConfFileUtil import ConfFileUtil
@@ -20,12 +18,12 @@ from Luke.utils.ConfFileUtil import ConfFileUtil
 logger = getLogger(__name__)
 SCORES_FILE = '../resources/scores.conf'
 
+
 class MatchMaker(object):
 
     def __init__(self):
         # read scores from file
         self.parser = ConfFileUtil.read_from_conf_file(SCORES_FILE)
-
 
     def find_match_by_all_values(self, bare_metal, req_list):
 
