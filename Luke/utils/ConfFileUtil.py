@@ -2,9 +2,16 @@ from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
 
 FAKE_SECTION = 'asection'
 
-class ConfFileUtil(SafeConfigParser):
 
+class ConfFileUtil(SafeConfigParser):
     def get_option(self, option, raw=False, vars=None):
+        """
+        override of get function to use it without passing specific section
+        :param option:
+        :param raw:
+        :param vars:
+        :return:
+        """
         res = None
         try:
             res = self.get(FAKE_SECTION, option, raw, vars)
@@ -13,7 +20,6 @@ class ConfFileUtil(SafeConfigParser):
         except NoOptionError as noe:
             print "calc_score: " + "NoOptionError " + noe.message
         return res
-
 
     @staticmethod
     def read_from_conf_file(conf_file):
@@ -25,7 +31,8 @@ class ConfFileUtil(SafeConfigParser):
 class FakeSectionHead(object):
     def __init__(self, fp):
         self.fp = fp
-        self.sechead = '['+FAKE_SECTION + ']\n'
+        self.sechead = '[' + FAKE_SECTION + ']\n'
+
     def readline(self):
         if self.sechead:
             try:

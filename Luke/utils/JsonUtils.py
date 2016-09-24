@@ -54,7 +54,7 @@ def parse_requests_to_obj(requests):
 
 
 def parse_req(request):
-    req = Request(json.dumps(request))
+    req = Request(json.dumps(request), request['id'])
     for key in request.keys():
         if key == REQUIREMENTS:
             req.requirements = request[key]

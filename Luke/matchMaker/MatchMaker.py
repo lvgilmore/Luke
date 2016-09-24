@@ -1,16 +1,17 @@
-from ConfigParser import NoOptionError
-from ConfigParser import NoSectionError
 from logging import getLogger
-
 from Luke.utils.ConfFileUtil import ConfFileUtil
 
 logger = getLogger(__name__)
-SCORES_FILE = '../resources/scores.conf'
+# SCORES_FILE = '../resources/scores.conf'
+SCORES_FILE = 'C:\\Users\\Yulia_tev\\PycharmProjects\\Luke\\resources\\scores.conf'
+
 
 class MatchMaker(object):
-
     def __init__(self):
         # read scores from file
+        # fn = os.path.dirname(os.path.abspath(__file__))
+        # scores_file_path = os.path.relpath('resources/scores.conf', os.path.join(os.path.dirname(__file__)))
+        # sdf = (os.path.join(os.path.abspath(os.path.dirname(__file__)), '..\\resources', 'scores.conf'))
         self.parser = ConfFileUtil.read_from_conf_file(SCORES_FILE)
 
     def find_match_by_all_values(self, bare_metal, req_list):
@@ -30,26 +31,24 @@ class MatchMaker(object):
         for request in req_list:
             curr_req_score = 0
             for bare_metal_key in bare_metal.keys():
-                if request.requirements and\
-                                bare_metal_key in request.requirements and\
-                                bare_metal[bare_metal_key] \
-                                == request.requirements[bare_metal_key]:
-                    curr_req_score += self.calc_score(bare_metal_key)
-
-                elif request.other_prop and\
-                    bare_metal_key in request.other_prop and\
-                    bare_metal[bare_metal_key] \
-                                == request.other_prop[bare_metal_key]:
+                if request.requirements and \
+                                bare_metal_key in request.requirements:
+                    if self.find_diff(request.requirements[bare_metal_key], bare_metal[bare_metal_key]):
                         curr_req_score += self.calc_score(bare_metal_key)
 
-                elif bare_metal_key in request.os and\
+                elif request.other_prop and \
+                                bare_metal_key in request.other_prop:
+                    if self.find_diff(request.other_prop[bare_metal_key], bare_metal[bare_metal_key]):
+                        curr_req_score += self.calc_score(bare_metal_key)
+
+                elif bare_metal_key in request.os and \
                                 bare_metal[bare_metal_key] == request[bare_metal_key]:
                     curr_req_score += self.calc_score(bare_metal_key)
 
             # compare by score
             if curr_req_score > best_match_req['score']:
                 best_match_req = {'request': request, 'score': curr_req_score}
-            elif best_match_req['score'] != 0 and best_match_req['score']\
+            elif best_match_req['score'] != 0 and best_match_req['score'] \
                     == curr_req_score:
                 # compare by creation time
                 if request.creation_time > \
@@ -58,30 +57,45 @@ class MatchMaker(object):
                                       'score': curr_req_score}
         return best_match_req['request']
 
-    @staticmethod
-    def find_match_by_requirements(bare_metal, req_list):
-        """finds requests in which all requirements are met
+    def find_diff(self, d1, d2, path=""):
+        """
+        comparing d1 to d2
+        :param d1:
+        :param d2:
+        :param path:
+        :return:
+        """
 
+        is_matches = True
+
+        if isinstance(d1, dict) and isinstance(d2, dict):
+            for key in d1.keys():
+                if not d2.has_key(key):
+                    is_matches = False
+                    break
+                else:
+                    if isinstance(d1[key], dict):
+                        self.find_diff(d1[key], d2[key], path)
+                    else:
+                        if d1[key] != d2[key]:
+                            is_matches = False
+                            break
+        elif d1 != d2:
+            is_matches = False
+        return is_matches
+
+    def find_match_by_requirements(self, bare_metal, req_list):
+        """
+        finds requests in which all requirements are met
         :param bare_metal:
         :param req_list:
         :return:
         """
         matched_req_by_requirements = []
 
-        for request in req_list:
-            request_match = True
-            if request.requirements is not None:
-                for requirements_key in request.requirements:
-                    if requirements_key not in bare_metal.keys():
-                        request_match = False
-                        break
-                    else:
-                        if request.requirements[requirements_key] != \
-                                bare_metal[requirements_key]:
-                            request_match = False
-                            break
-            if request_match:
-                matched_req_by_requirements.append(request)
+        for req in req_list:
+            if self.find_diff(req.requirements, bare_metal):
+                matched_req_by_requirements.append(req)
 
         return matched_req_by_requirements
 
