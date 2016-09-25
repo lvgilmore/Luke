@@ -23,6 +23,7 @@ REQ_ID = 'id'
 
 
 class RequestList(object):
+
     def __init__(self):
         pass
 

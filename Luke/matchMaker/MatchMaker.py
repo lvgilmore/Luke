@@ -14,6 +14,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from logging import getLogger
+
 from Luke.utils.ConfFileUtil import ConfFileUtil
 
 logger = getLogger(__name__)
@@ -22,11 +23,9 @@ SCORES_FILE = '../resources/scores.conf'
 
 
 class MatchMaker(object):
+
     def __init__(self):
         # read scores from file
-        # fn = os.path.dirname(os.path.abspath(__file__))
-        # scores_file_path = os.path.relpath('resources/scores.conf', os.path.join(os.path.dirname(__file__)))
-        # sdf = (os.path.join(os.path.abspath(os.path.dirname(__file__)), '..\\resources', 'scores.conf'))
         self.parser = ConfFileUtil.read_from_conf_file(SCORES_FILE)
 
     def find_match_by_all_values(self, bare_metal, req_list):
@@ -80,6 +79,7 @@ class MatchMaker(object):
         :param path:
         :return:
         """
+        matched_req_by_requirements = []
 
         is_matches = True
 
