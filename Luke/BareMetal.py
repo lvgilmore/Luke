@@ -18,8 +18,15 @@ class BareMetal(object):
     def __init__(self, bare_metal_str):
         self.bare_metal = bare_metal_str
         json_bare = loads(bare_metal_str)
-        self.hostname = json_bare['hostname'] if 'hostname' in json_bare else None
+        for key, value in json_bare.iteritems():
+            self.__dict__[key] = value
         self.ip = json_bare['ip'] if 'ip' in json_bare else None
+        if 'hostname' in json_bare:
+            self.hostname = json_bare['hostname']
+        elif self.ip:
+            self.hostname = self.ip
+        else:
+            self.hostname = None
 
 
 if __name__ == "__main__":

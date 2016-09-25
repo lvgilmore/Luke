@@ -1,10 +1,12 @@
 #! /usr/bin/python2.7
 
 from ipaddr import IPv4Network
+from logging import getLogger
 from os import popen
 from re import sub
 
 DHCP_LOG_FILE = "/var/log/dhcpd.log"
+logger = getLogger(__name__)
 
 
 class Utils(object):
@@ -24,7 +26,7 @@ class Utils(object):
         return temp
 
     @staticmethod
-    def _locate_mac_in_log(locate_macs):
+    def locate_mac_in_log(locate_macs):
         macs = []
         log = popen("tail -500 {} | grep DHCPDISCOVER".format(
             DHCP_LOG_FILE)).read().split('\n')

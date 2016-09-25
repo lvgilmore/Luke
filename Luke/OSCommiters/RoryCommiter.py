@@ -20,6 +20,7 @@ from json import dumps
 
 from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
+from Luke.Request import Request
 from Luke.utils.Utils import Utils
 
 logger = getLogger(__name__)
@@ -30,25 +31,26 @@ class RoryCommiter(ICommiter):
         pass
 
     def commit(self, bare_metal, request):
-        if isinstance(bare_metal, BareMetal):
+        bare_metal = ICommiter.normalize(bare_metal, BareMetal)
+        request = ICommiter.normalize(request, Request)
 
         profile = request.other_prop["profile"]
         if "hostname" in request.other_prop:
             hostname = request.other_prop["hostname"]
         else:
-            hostname = bare_metal.values()[0]["hostname"]
+            hostname = bare_metal.hostname
         try:
             ip = IPv4Address(hostname)
         except (AddressValueError, ValueError):
             ip = None
 
         # try to guess the mac to use
-        if "Mac" in bare_metal:
-            mac = bare_metal["Mac"]
+        if "Mac" in bare_metal.__dict__:
+            mac = bare_metal.Mac
         else:
             # get all available macs
             macs = []
-            for nic in bare_metal.values()[0]["NICs"].values():
+            for nic in bare_metal.NICs.iteritems():
                 if nic[0] != "lo":
                     macs.append(nic[1]["Mac"])
 
@@ -58,7 +60,7 @@ class RoryCommiter(ICommiter):
                 logger.error("cannot Rory install - couldn't determine mac")
                 raise RoryError("couldn't determine mac")
             else:
-                mac = Utils._locate_mac_in_log(locate_macs=macs)
+                mac = Utils.locate_mac_in_log(locate_macs=macs)
                 if not mac:
                     mac = macs[0]
         url = "http://google.com"
@@ -66,7 +68,7 @@ class RoryCommiter(ICommiter):
         if ip is None:
             data["hostname"] = hostname
         else:
-            data["ip"] = ip
+            data["ip"] = str(ip)
         data = dumps(data)
         rest_put(url=url, data=data)
         return url, data

@@ -12,6 +12,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from json import loads
 from unittest import main
 from unittest import TestCase
 
@@ -44,10 +45,14 @@ class TestRoryCommiter(TestCase):
              "Mac": "00:0c:29:3d:5e:ce", "Type": "Port: Twisted Pair"}},
              "Disks": {"sda": {"Vendor": "VMware", "Size": "2"},
              "sr0": {"Vendor": "VMware", "Size": "5"}},
-             "Model": "mod"}""")
+             "Model": "mod", "ip": "192.168.0.1"}""")
 
         url, data = self.roryc.commit(bare_metal, req)
-        self.assertEqual("http://google.com", url)
+        data = loads(data)
+        self.assertEqual(url, "http://google.com")
+        self.assertEqual(data, {"profile": "shit",
+                                "mac": "00:0c:29:3d:5e:ce",
+                                "ip": "192.168.0.1"})
 
 
 if __name__ == '__main__':
