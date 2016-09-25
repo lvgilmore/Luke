@@ -18,9 +18,8 @@ This module manipulates the DHCP configuration file
 @author: Geiger
 @created: 11/09/2016
 """
-
-from ipaddr import IPv4Address
-from ipaddr import IPv4Network
+import os
+from ConfigParser import ConfigParser
 from logging import getLogger
 from os import getpid
 from os import kill
@@ -30,20 +29,25 @@ from random import uniform
 from socket import gethostbyaddr
 from socket import herror
 
+from ipaddr import IPv4Address
+from ipaddr import IPv4Network
+
 from Luke.OSCommiters.ICommiter import ICommiter
-from Luke.utils.config import DHCP_CONF_FILE
-from Luke.utils.config import NEXT_SERVER
-from Luke.utils.config import TFTP_FILENAME
 from Luke.utils.DHCPConfParser import load as dhcp_load
 from Luke.utils.DHCPConfParser import save as dhcp_save
 from Luke.utils.Utils import Utils
 
 logger = getLogger(__name__)
+SECTION = 'SECTION'
 
 
 class DHCPCommiter(ICommiter):
-    def __init__(self, dhcp_config_file=DHCP_CONF_FILE):
-        self.dhcp_config_file = dhcp_config_file
+    def __init__(self):
+        self.parser = ConfigParser()
+        if os.environ['LUKE_PATH'] == "":
+            os.environ['LUKE_PATH'] = os.path.dirname(__file__)
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], 'resources/config.conf'))
+        self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
 
     def commit(self, bare_metal, request):
         bare_metal = DHCPCommiter._build_host(bare_metal)
@@ -91,8 +95,7 @@ class DHCPCommiter(ICommiter):
                     "DHCPCommiter.commit was called without IP nor segment")
         return host
 
-    @staticmethod
-    def _build_os(os):
+    def _build_os(self, os):
         """like _build_host, but for os
 
         :param host: unstructured os and related info
@@ -102,9 +105,9 @@ class DHCPCommiter(ICommiter):
         """
         assert isinstance(os, dict)
         if "next server" not in os:
-            os["next-server"] = NEXT_SERVER
+            os["next-server"] = self.parser.get(SECTION, 'NEXT_SERVER')
         if "filename" not in os:
-            os["filename"] = TFTP_FILENAME
+            os["filename"] = self.parser.get(SECTION, 'TFTP_FILENAME')
         return os
 
     @staticmethod

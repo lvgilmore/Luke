@@ -16,9 +16,10 @@
 @author: Geiger
 @created: 13/09/2016
 """
-from ipaddr import IPv4Network
 from re import split
 from re import sub
+
+from ipaddr import IPv4Network
 
 from Luke.utils.Utils import Utils
 

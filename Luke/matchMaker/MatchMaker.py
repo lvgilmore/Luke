@@ -1,18 +1,22 @@
+import os
 from logging import getLogger
-from Luke.utils.ConfFileUtil import ConfFileUtil
+
+from configparser import ConfigParser
 
 logger = getLogger(__name__)
-# SCORES_FILE = '../resources/scores.conf'
-SCORES_FILE = 'C:\\Users\\Yulia_tev\\PycharmProjects\\Luke\\resources\\scores.conf'
+DEFAULT_SECTION = 'SERVER'
 
 
 class MatchMaker(object):
     def __init__(self):
+        self.parser = ConfigParser()
+        #        print(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
+        #         self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
+
         # read scores from file
-        # fn = os.path.dirname(os.path.abspath(__file__))
-        # scores_file_path = os.path.relpath('resources/scores.conf', os.path.join(os.path.dirname(__file__)))
-        # sdf = (os.path.join(os.path.abspath(os.path.dirname(__file__)), '..\\resources', 'scores.conf'))
-        self.parser = ConfFileUtil.read_from_conf_file(SCORES_FILE)
+        self.parser.read(os.path.relpath('resources/scores.conf',
+                                         os.path.join(os.path.dirname(__file__))))
+        self.best_match_req = {'request': None, 'score': 0}
 
     def find_match_by_all_values(self, bare_metal, req_list):
 
@@ -26,38 +30,72 @@ class MatchMaker(object):
         :return:
         """
 
-        best_match_req = {'request': None, 'score': 0}
-
         for request in req_list:
             curr_req_score = 0
             for bare_metal_key in bare_metal.keys():
                 if request.requirements and \
                                 bare_metal_key in request.requirements:
-                    if self.find_diff(request.requirements[bare_metal_key], bare_metal[bare_metal_key]):
-                        curr_req_score += self.calc_score(bare_metal_key)
+                    curr_req_score += self.find_match(request.requirements[bare_metal_key],
+                                                      bare_metal[bare_metal_key],
+                                                      bare_metal_key)
 
                 elif request.other_prop and \
                                 bare_metal_key in request.other_prop:
-                    if self.find_diff(request.other_prop[bare_metal_key], bare_metal[bare_metal_key]):
-                        curr_req_score += self.calc_score(bare_metal_key)
+                    curr_req_score += self.find_match(request.other_prop[bare_metal_key],
+                                                      bare_metal[bare_metal_key],
+                                                      bare_metal_key)
 
                 elif bare_metal_key in request.os and \
                                 bare_metal[bare_metal_key] == request[bare_metal_key]:
-                    curr_req_score += self.calc_score(bare_metal_key)
+                    # curr_req_score += self.calc_score(bare_metal_key)
+                    curr_req_score += self.find_match(request.os[bare_metal_key],
+                                                      bare_metal[bare_metal_key],
+                                                      bare_metal_key)
 
-            # compare by score
-            if curr_req_score > best_match_req['score']:
-                best_match_req = {'request': request, 'score': curr_req_score}
-            elif best_match_req['score'] != 0 and best_match_req['score'] \
-                    == curr_req_score:
-                # compare by creation time
-                if request.creation_time > \
-                        best_match_req['request'].creation_time:
-                    best_match_req = {'request': request,
-                                      'score': curr_req_score}
-        return best_match_req['request']
+            # find the best match by the highest score
+            self.compare_scores(curr_req_score, request)
 
-    def find_diff(self, d1, d2, path=""):
+        return self.best_match_req['request']
+
+    def compare_scores(self, curr_req_score, request):
+        if curr_req_score > self.best_match_req['score']:
+            self.best_match_req = {'request': request, 'score': curr_req_score}
+        elif self.best_match_req['score'] != 0 and self.best_match_req['score'] \
+                == curr_req_score:
+            # compare by creation time
+            if request.creation_time > \
+                    self.best_match_req['request'].creation_time:
+                self.best_match_req = {'request': request,
+                                       'score': curr_req_score}
+        return self.best_match_req['request']
+
+    def find_match(self, d1, d2, section, score=0):
+        """
+        comparing d1 to d2
+        :param section:
+        :param d1:
+        :param d2:
+        :param path:
+        :return:
+        """
+
+        if isinstance(d1, dict) and isinstance(d2, dict):
+            for key in d1.keys():
+                if isinstance(d1[key], dict):
+                    if section == 'NICs':
+                        score += self.find_match(d1[key], d2[key], 'NICS', score)
+                    elif section == 'Disks':
+                        score += self.find_match(d1[key], d2[key], 'DISKS', score)
+                    else:
+                        score += self.find_match(d1[key], d2[key], key, score)
+                else:
+                    if d1[key] == d2[key]:
+                        score += self.get_score(section, key)
+        elif d1 == d2:
+            score = self.get_score(DEFAULT_SECTION, section)
+        return score
+
+    def check_if_different(self, d1, d2):
         """
         comparing d1 to d2
         :param d1:
@@ -66,23 +104,23 @@ class MatchMaker(object):
         :return:
         """
 
-        is_matches = True
+        are_different = False
 
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if not d2.has_key(key):
-                    is_matches = False
+                    are_different = True
                     break
                 else:
                     if isinstance(d1[key], dict):
-                        self.find_diff(d1[key], d2[key], path)
+                        self.check_if_different(d1[key], d2[key])
                     else:
                         if d1[key] != d2[key]:
-                            is_matches = False
+                            are_different = True
                             break
         elif d1 != d2:
-            is_matches = False
-        return is_matches
+            are_different = True
+        return are_different
 
     def find_match_by_requirements(self, bare_metal, req_list):
         """
@@ -94,19 +132,28 @@ class MatchMaker(object):
         matched_req_by_requirements = []
 
         for req in req_list:
-            if self.find_diff(req.requirements, bare_metal):
+            if not self.check_if_different(req.requirements, bare_metal):
                 matched_req_by_requirements.append(req)
 
         return matched_req_by_requirements
 
-    def calc_score(self, key):
+    def get_score(self, section, key):
+        """
+        get score of given key (option) in section from scores file
+        :param section:
+        :param key:
+        :return:
+        """
         score = 0
-        try:
-            score = int(self.parser.get_option(key))
-        except ValueError as ve:
-            print ("calc_score: " + "ValueError " + ve.message)
 
-        return score
+        if not self.parser.has_section(section.upper()):
+            print "no section: " + section
+        elif not self.parser.has_option(section.upper(), key):
+            print "no option: " + key + " in section: " + section
+        else:
+            score = self.parser.get(section.upper(), key)
+
+        return int(score)
 
 
 if __name__ == "__main__":

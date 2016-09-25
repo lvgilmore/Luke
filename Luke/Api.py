@@ -1,12 +1,15 @@
 from Luke.BareMetal import BareMetal
-from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.Request import Request
 from Luke.RequestList import RequestList
+from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.utils import JsonUtils
 
 
 class Api(object):
     def __init__(self):
+        # if os.environ['LUKE_PATH'] == "":
+        #     os.environ['LUKE_PATH'] = os.path.dirname(__file__)
+
         # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
         pass
@@ -58,8 +61,8 @@ if __name__ == "__main__":
                                 "\"Vendor\": \"vend\"},"\
         "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, "\
         "\"NICs\": {\"ens33\": "\
-                        "{\"Speed\": \"Speed: 1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
-                                \"Type\": \"Port: Twisted Pair\"}},"\
+                        "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                                \"Type\": \"Twisted Pair\"}},"\
         " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, "\
                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, "\
         "\"Model\": \"mod\"}}"
@@ -69,8 +72,8 @@ if __name__ == "__main__":
                     \"Speed\": \"2201.000\", \"Cores\": \"1\"},"\
                     " \"Ram\": {\"Size\": \"3062784\"}, "\
                     "\"NICs\": {\"ens33\": "\
-                                    "{\"Speed\": \"Speed: 1000Mb/s\", \
-                                    \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Port: Twisted Pair\"}},"\
+                                    "{\"Speed\": \"1000Mb/s\", \
+                                    \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}},"\
                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, "\
                                 "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, "\
                     "\"Model\": \"mod\"}"

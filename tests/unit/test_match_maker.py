@@ -1,8 +1,8 @@
+import os
+import unittest
 import uuid
 
 from Luke.Api import Api
-import unittest
-
 from Luke.BareMetal import BareMetal
 from Luke.Request import Request
 from Luke.matchMaker.MatchMaker import MatchMaker
@@ -12,6 +12,9 @@ from Luke.utils import JsonUtils
 class TestMatchMaker(unittest.TestCase):
     def setUp(self):
         self.api = Api()
+        if 'LUKE_PATH' not in os.environ:
+            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
+        print(os.environ['LUKE_PATH'])
 
     def test_1(self):
         """
