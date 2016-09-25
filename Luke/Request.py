@@ -9,7 +9,7 @@ DEFAULT_OS = 'Linux'
 
 
 class Request(object):
-    def __init__(self, request_str, req_id = str(uuid.uuid4())):
+    def __init__(self, request_str, req_id=str(uuid.uuid4())):
         json_req = json.loads(request_str)
 
         self.requirements = \

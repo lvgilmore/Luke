@@ -15,14 +15,39 @@
 from unittest import main
 from unittest import TestCase
 
+from Luke.BareMetal import BareMetal
+from Luke.OSCommiters.RoryCommiter import RoryCommiter
+from Luke.Request import Request
+
 
 class TestRoryCommiter(TestCase):
 
     def setUp(self):
-        pass
+        self.roryc = RoryCommiter()
 
     def tearDown(self):
         pass
+
+    def test_commit(self):
+        req = Request(
+            """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
+            "Speed": "2201.000", "Cores": "1"},
+             "Vendor": "vend"},
+            "other_prop": {"profile": "shit"},
+            "os": "Rory"} """)
+
+        bare_metal = BareMetal(
+            """{"Vendor": "vend", "Cpu": {"Sockets": "1", "Arch": "x86_64",
+             "Speed": "2201.000", "Cores": "1"},
+             "Ram": {"Size": "3062784"},
+             "NICs": {"ens33": {"Speed": "Speed: 1000Mb/s",
+             "Mac": "00:0c:29:3d:5e:ce", "Type": "Port: Twisted Pair"}},
+             "Disks": {"sda": {"Vendor": "VMware", "Size": "2"},
+             "sr0": {"Vendor": "VMware", "Size": "5"}},
+             "Model": "mod"}""")
+
+        url, data = self.roryc.commit(bare_metal, req)
+        self.assertEqual("http://google.com", url)
 
 
 if __name__ == '__main__':

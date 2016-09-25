@@ -11,10 +11,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from json import loads
+
 
 class BareMetal(object):
     def __init__(self, bare_metal_str):
         self.bare_metal = bare_metal_str
+        json_bare = loads(bare_metal_str)
+        self.hostname = json_bare['hostname'] if 'hostname' in json_bare else None
+        self.ip = json_bare['ip'] if 'ip' in json_bare else None
 
 
 if __name__ == "__main__":

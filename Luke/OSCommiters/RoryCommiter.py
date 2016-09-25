@@ -18,6 +18,7 @@ from logging import getLogger
 from requests import put as rest_put
 from json import dumps
 
+from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
 from Luke.utils.Utils import Utils
 
@@ -29,6 +30,8 @@ class RoryCommiter(ICommiter):
         pass
 
     def commit(self, bare_metal, request):
+        if isinstance(bare_metal, BareMetal):
+
         profile = request.other_prop["profile"]
         if "hostname" in request.other_prop:
             hostname = request.other_prop["hostname"]
@@ -66,6 +69,7 @@ class RoryCommiter(ICommiter):
             data["ip"] = ip
         data = dumps(data)
         rest_put(url=url, data=data)
+        return url, data
 
 
 class RoryError(Exception):
