@@ -1,13 +1,23 @@
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import io
 import json
 
-from src.Request import Request
+from Luke.Request import Request, OTHER_PROP, OS, REQUIREMENTS
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
-REQUIREMENTS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
 
 
 def convert_from_json_to_obj(obj_to_convert):
@@ -44,12 +54,8 @@ def parse_requests_to_obj(requests):
 
 
 def parse_req(request):
-    req = Request(request)
-
+    req = Request(json.dumps(request), request['id'])
     for key in request.keys():
-        # req.__dict__.[key] = request.__dict__.get(key)
-        req[key] = request.__dict__.get(key)
-
         if key == REQUIREMENTS:
             req.requirements = request[key]
         elif key == OS:
@@ -57,27 +63,3 @@ def parse_req(request):
         elif key == OTHER_PROP:
             req.other_prop = request[key]
     return req
-
-
-# there is no need in this function, delete it later
-# def update_json_entry_with_score(request_to_update, score):
-#     """
-#     reads a content of a file, finds the given request and
-#     updates this entry with score value
-#     :param request_to_update:
-#     :param score:
-#     :return:
-#     """
-#     with io.open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
-#         requests = json.load(f)
-#
-#         for request in requests:
-#             if request == request_to_update:
-#                 temp = request_to_update
-#                 temp[SCORE_KEY] = score
-#                 requests.pop(requests.index(request))
-#                 requests.append(temp)
-#                 break
-#
-#     with io.open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
-#         json.dump(requests, f)
