@@ -6,7 +6,6 @@ from Luke.utils import JsonUtils
 
 
 class Api(object):
-
     def __init__(self):
         # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
@@ -38,24 +37,42 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-                print(best_match_request.full_req)
+            print(best_match_request.id)
+            print(best_match_request.os)
+            print("\nother prop:")
+            for i in best_match_request.other_prop:
+                print(i, best_match_request.other_prop[i])
+            print("\nrequirements:")
+            for i in best_match_request.requirements:
+                print(i, best_match_request.requirements[i])
         else:
             print("no best match found")
 
-if __name__ == "__main__":
+        return best_match_request
 
+
+if __name__ == "__main__":
     api = Api()
-    api.handle_new_request(Request("{\"other_prop\": {\"name\": \"name1\"}}"))
-    api.handle_new_request(Request("{\"requirements\": {\"cpu\": \"cpu\","
-                                   " \"name1\": \"name1\",  \"id1\": \"id1\"},"
-                                   " \"os\": \"Windows\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
-                                   " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
-                                   " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name\","
-                                   " \"url\": \"url\", \"id\": \"id1\"},"
-                                   " \"os\": \"Linux\"}"))
-    api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\","
-                                        " \"id\": \"id1\","
-                                        " \"os\": \"os\"}"))
+    req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                                    \"Speed\": \"2201.000\", \"Cores\": \"1\"},"\
+                                "\"Vendor\": \"vend\"},"\
+        "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, "\
+        "\"NICs\": {\"ens33\": "\
+                        "{\"Speed\": \"Speed: 1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                                \"Type\": \"Port: Twisted Pair\"}},"\
+        " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, "\
+                    "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, "\
+        "\"Model\": \"mod\"}}"
+
+    bare_metal = "{\"Vendor\": \"vend\","\
+                    " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                    \"Speed\": \"2201.000\", \"Cores\": \"1\"},"\
+                    " \"Ram\": {\"Size\": \"3062784\"}, "\
+                    "\"NICs\": {\"ens33\": "\
+                                    "{\"Speed\": \"Speed: 1000Mb/s\", \
+                                    \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Port: Twisted Pair\"}},"\
+                    " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, "\
+                                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, "\
+                    "\"Model\": \"mod\"}"
+    api.handle_new_request(Request(req))
+    api.handle_new_bare_metal(BareMetal(bare_metal))
