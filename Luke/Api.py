@@ -76,18 +76,3 @@ if __name__ == "__main__":
                     "\"Model\": \"mod\"}"
     api.handle_new_request(Request(req))
     api.handle_new_bare_metal(BareMetal(bare_metal))
-
-#    api.handle_new_request(Request("{\"other_prop\": {\"name\": \"name1\"}}"))
-#   api.handle_new_request(Request("{\"requirements\": {\"cpu\": \"cpu\","
-#                                  " \"name1\": \"name1\",  \"id1\": \"id1\"},"
-#                                  " \"os\": \"Windows\"}"))
-#   api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
-#                                  " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-#   api.handle_new_request(Request("{\"requirements\": {\"name\": \"name1\","
-#                                  " \"id\": \"id1\"}, \"os\": \"Linux\"}"))
-#    api.handle_new_request(Request("{\"requirements\": {\"name\": \"name\","
-#                                   " \"url\": \"url\", \"id\": \"id1\"},"
-#                                   " \"os\": \"Linux\"}"))
-#    api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\","
-#                                        " \"id\": \"id1\","
-#                                        " \"os\": \"os\"}"))

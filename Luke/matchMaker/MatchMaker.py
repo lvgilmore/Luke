@@ -1,4 +1,5 @@
 #! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -46,20 +47,19 @@ class MatchMaker(object):
             curr_req_score = 0
             for bare_metal_key in bare_metal.keys():
                 if request.requirements and \
-                        bare_metal_key in request.requirements:
-                    if self.find_diff(request.requirements[bare_metal_key],
-                            bare_metal[bare_metal_key]):
+                                bare_metal_key in request.requirements:
+                    if self.find_diff(request.requirements[bare_metal_key], bare_metal[bare_metal_key]):
                         curr_req_score += self.calc_score(bare_metal_key)
 
                 elif request.other_prop and \
-                        bare_metal_key in request.other_prop:
-                    if self.find_diff(request.other_prop[bare_metal_key],
-                            bare_metal[bare_metal_key]):
+                                bare_metal_key in request.other_prop:
+                    if self.find_diff(request.other_prop[bare_metal_key], bare_metal[bare_metal_key]):
                         curr_req_score += self.calc_score(bare_metal_key)
 
                 elif bare_metal_key in request.os and \
-                        bare_metal[bare_metal_key] == request[bare_metal_key]:
+                                bare_metal[bare_metal_key] == request[bare_metal_key]:
                     curr_req_score += self.calc_score(bare_metal_key)
+
             # compare by score
             if curr_req_score > best_match_req['score']:
                 best_match_req = {'request': request, 'score': curr_req_score}
@@ -71,21 +71,6 @@ class MatchMaker(object):
                     best_match_req = {'request': request,
                                       'score': curr_req_score}
         return best_match_req['request']
-        """
-                        bare_metal_key in request.requirements and\
-                        bare_metal[bare_metal_key] \
-                        == request.requirements[bare_metal_key]:
-                    curr_req_score += self.calc_score(bare_metal_key)
-
-                elif request.other_prop and\
-                        bare_metal_key in request.other_prop and\
-                        bare_metal[bare_metal_key] \
-                        == request.other_prop[bare_metal_key]:
-                    curr_req_score += self.calc_score(bare_metal_key)
-
-                elif bare_metal_key in request.os and\
-                        bare_metal[bare_metal_key] == request[bare_metal_key]:
-        """
 
     def find_diff(self, d1, d2, path=""):
         """

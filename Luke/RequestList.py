@@ -1,4 +1,5 @@
 #! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -28,6 +29,7 @@ class RequestList(object):
     @staticmethod
     def handle_new_request(request):
         json_req = dict()
+
         json_req[CREATION_TIME] = request.creation_time
         json_req[REQUIREMENTS] = request.requirements
         json_req[OTHER_PROP] = request.other_prop
