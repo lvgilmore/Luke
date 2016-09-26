@@ -18,9 +18,7 @@ from logging import getLogger
 from requests import put as rest_put
 from json import dumps
 
-from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
-from Luke.Request import Request
 from Luke.utils.Utils import Utils
 
 logger = getLogger(__name__)
@@ -31,8 +29,6 @@ class RoryCommiter(ICommiter):
         pass
 
     def commit(self, bare_metal, request):
-        bare_metal = ICommiter.normalize(bare_metal, BareMetal)
-        request = ICommiter.normalize(request, Request)
 
         profile = request.other_prop["profile"]
         if "hostname" in request.other_prop:
