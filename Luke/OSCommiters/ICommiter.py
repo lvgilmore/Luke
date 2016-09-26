@@ -6,12 +6,14 @@ Interface for specific OS commiters
 @created: 11/09/2016
 """
 
+from json import dumps
+
 
 class ICommiter(object):
     def __init__(self):
         pass
 
-    def commit(self, **kwargs):
+    def commit(self, bare_metal, request):
         """commits decision
 
         :param kwargs: dict
@@ -20,6 +22,15 @@ class ICommiter(object):
         :return: null
         """
         raise MethodNotImplementedError("you must implement commit")
+
+    @staticmethod
+    def normalize(argument, desired_type):
+        if isinstance(argument, desired_type):
+            return argument
+        elif isinstance(argument, str):
+            return desired_type(argument)
+        elif isinstance(argument, dict) or isinstance(argument, list):
+            return desired_type(dumps(argument))
 
 
 class MethodNotImplementedError(NotImplementedError):

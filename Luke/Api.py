@@ -40,14 +40,14 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            print best_match_request.id
-            print (best_match_request.os)
-            print ("\nother prop:")
+            print(best_match_request.id)
+            print(best_match_request.os)
+            print("\nother prop:")
             for i in best_match_request.other_prop:
-                print (i, best_match_request.other_prop[i])
-            print ("\nrequirements:")
+                print(i, best_match_request.other_prop[i])
+            print("\nrequirements:")
             for i in best_match_request.requirements:
-                print (i, best_match_request.requirements[i])
+                print(i, best_match_request.requirements[i])
         else:
             print("no best match found")
 

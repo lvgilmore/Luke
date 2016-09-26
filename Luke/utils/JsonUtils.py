@@ -14,7 +14,10 @@
 import io
 import json
 
-from Luke.Request import Request, OTHER_PROP, OS, REQUIREMENTS
+from Luke.Request import OS
+from Luke.Request import OTHER_PROP
+from Luke.Request import Request
+from Luke.Request import REQUIREMENTS
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'

@@ -25,7 +25,7 @@ from Luke.utils.Utils import Utils
 
 
 def load(conffile):
-    dhcp_confs = {"shared_nets": {},
+    dhcp_confs = {"shared-networks": {},
                   "subnets": {},
                   "hosts": {},
                   "groups": {},
@@ -40,7 +40,7 @@ def load(conffile):
                 conf, str(conf.__class__)))
         if conf.startswith('shared-network'):
             k, v = _parse_shared_network(confs)
-            dhcp_confs["shared_nets"][k] = v
+            dhcp_confs["shared-networks"][k] = v
         elif conf.startswith('subnet'):
             k, v = _parse_subnet(confs)
             dhcp_confs["subnets"][k] = v
@@ -75,9 +75,12 @@ def _preformat(conffile):
 
 
 def _parse_shared_network(confs):
-    assert isinstance(confs[0], str) \
-        and confs[0].startswith('shared-network') \
-        and confs[1] == '{'
+    try:
+        if not confs[0].startswith('shared-network') \
+                or not confs[1] == '{':
+            raise ParseError
+    except (TypeError, IndexError):
+        raise ParseError
     shared_name = confs.pop(0).split()[1]
     shared_net = {'subnets': {},
                   'hosts': {},
@@ -103,9 +106,12 @@ def _parse_shared_network(confs):
 
 
 def _parse_subnet(confs):
-    assert isinstance(confs[0], str) \
-        and confs[0].startswith('subnet') \
-        and confs[1] == '{'
+    try:
+        if not confs[0].startswith('subnet') \
+                or not confs[1] == '{':
+            raise ParseError
+    except (TypeError, IndexError):
+        raise ParseError
     subnet_ip = IPv4Network("{}/{}".format(
         confs[0].split()[1], confs[0].split()[3]))
     subnet = {'hosts': {},
@@ -132,7 +138,10 @@ def _parse_host(confs):
     assert isinstance(confs[0], str) \
         and confs[0].startswith('host') \
         and confs[1] == '{'
-    host_name = confs.pop(0).split()[1]
+    try:
+        host_name = confs.pop(0).split()[1]
+    except IndexError:
+        raise ParseError("host must have a name")
     host = {'options': {}}
     confs.pop(0)
     while confs[0] != '}':
