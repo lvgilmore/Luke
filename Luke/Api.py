@@ -36,7 +36,7 @@ class Api(object):
         # check if list is not empty
         if matched_requests_by_requirements:
             # find match between bare metal and all requests
-            best_match_request = match_maker.find_match_by_all_values(
+            best_match_request = match_maker.find_valid_candidate(
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:

@@ -30,4 +30,4 @@ class BareMetal(object):
 
 
 if __name__ == "__main__":
-    BareMetal("{\"name\": \"name1\", \"url\": \"url\"}")
+    pass

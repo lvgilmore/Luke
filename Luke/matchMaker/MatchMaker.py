@@ -26,17 +26,16 @@ class MatchMaker(object):
 
     def __init__(self):
         self.parser = ConfigParser()
-        #        print(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
-        #         self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
 
         # read scores from file
-        self.parser.read(os.path.relpath('resources/scores.conf',
-                                         os.path.join(os.path.dirname(__file__))))
+        # self.parser.read(os.path.relpath('resources/scores.conf',
+        #                                  os.path.join(os.path.dirname(__file__))))
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
         self.best_match_req = {'request': None, 'score': 0}
 
-    def find_match_by_all_values(self, bare_metal, req_list):
+    def find_valid_candidate(self, bare_metal, req_list):
 
-        """finds valid candidates
+        """finds valid candidate
 
         finds if there are equal keys and values in bare metal and in
         one of the requests, if yes, updates the total curr_req_score
@@ -53,20 +52,20 @@ class MatchMaker(object):
                                 bare_metal_key in request.requirements:
                     curr_req_score += self.find_match(request.requirements[bare_metal_key],
                                                       bare_metal[bare_metal_key],
-                                                      bare_metal_key)
+                                                      bare_metal_key, curr_req_score)
 
                 elif request.other_prop and \
                                 bare_metal_key in request.other_prop:
                     curr_req_score += self.find_match(request.other_prop[bare_metal_key],
                                                       bare_metal[bare_metal_key],
-                                                      bare_metal_key)
+                                                      bare_metal_key, curr_req_score)
 
                 elif bare_metal_key in request.os and \
                                 bare_metal[bare_metal_key] == request[bare_metal_key]:
                     # curr_req_score += self.calc_score(bare_metal_key)
                     curr_req_score += self.find_match(request.os[bare_metal_key],
                                                       bare_metal[bare_metal_key],
-                                                      bare_metal_key)
+                                                      bare_metal_key, curr_req_score)
 
             # find the best match by the highest score
             self.compare_scores(curr_req_score, request)
@@ -76,10 +75,10 @@ class MatchMaker(object):
     def compare_scores(self, curr_req_score, request):
         if curr_req_score > self.best_match_req['score']:
             self.best_match_req = {'request': request, 'score': curr_req_score}
-        elif self.best_match_req['score'] != 0 and self.best_match_req['score'] \
-                == curr_req_score:
+        elif self.best_match_req['score'] != 0 and \
+                        self.best_match_req['score'] == curr_req_score:
             # compare by creation time
-            if request.creation_time > \
+            if request.creation_time < \
                     self.best_match_req['request'].creation_time:
                 self.best_match_req = {'request': request,
                                        'score': curr_req_score}
@@ -88,13 +87,12 @@ class MatchMaker(object):
     def find_match(self, d1, d2, section, score=0):
         """
         comparing d1 to d2
+        :param score:
         :param section:
         :param d1:
         :param d2:
-        :param path:
         :return:
         """
-
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
@@ -124,12 +122,14 @@ class MatchMaker(object):
 
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
-                if not d2.has_key(key):
+                if not key in d2:
                     are_different = True
                     break
                 else:
                     if isinstance(d1[key], dict):
-                        self.check_if_different(d1[key], d2[key])
+                        are_different = self.check_if_different(d1[key], d2[key])
+                        if are_different:
+                            break
                     else:
                         if d1[key] != d2[key]:
                             are_different = True

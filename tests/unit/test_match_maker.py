@@ -2,186 +2,286 @@ import os
 import unittest
 import uuid
 
+import time
+
 from Luke.Api import Api
 from Luke.BareMetal import BareMetal
 from Luke.Request import Request
 from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.utils import JsonUtils
 
+DELAY_SECONDS = 2
+
 
 class TestMatchMaker(unittest.TestCase):
     def setUp(self):
         self.api = Api()
         if 'LUKE_PATH' not in os.environ:
-            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
-        print(os.environ['LUKE_PATH'])
+            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "..\..\\")
 
-    def test_1(self):
+    def test_no_request(self):
         """
         got new bare metal, no requests in file
-        :return:
+        :return: no best match
         """
-        best_request = self.api.handle_new_bare_metal(BareMetal("{\"name\": \"name1\","
-                                                                " \"id\": \"id1\","
-                                                                " \"os\": \"os\"}"))
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
 
         self.assertEqual(best_request, None)
 
-    def test_2(self):
+    def test_no_match(self):
         """
-        one request in requests file that not match the bare metal
+        bare metal not match requirements
+        :return:
+        no best match found
+        """
+        req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"2\",\
+                                                  \"Speed\": \"333.000\", \"Cores\": \"6\"}," \
+              "\"Vendor\": \"vend\"}," \
+              "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+              "\"NICs\": {\"ens33\": " \
+              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                      \"Type\": \"Twisted Pair\"}}," \
+              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+              "\"Model\": \"mod\"}}"
+
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request(Request(req))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+
+        self.assertEqual(best_request, None)
+
+    def test_no_requirements(self):
+        """
+        request with no requirements
+        :return: request
+        """
+        req_id = str(uuid.uuid4())
+        req = "{\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+              "\"NICs\": {\"ens33\": " \
+              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                      \"Type\": \"Twisted Pair\"}}," \
+              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+              "\"Model\": \"mod\"}}"
+
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request(Request(req, req_id))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+
+        self.assertEqual(best_request.id, req_id)
+
+    def test_match(self):
+        """
+        one request with requirements that match bare metal
+        :return: request
+        """
+        req_id = str(uuid.uuid4())
+        req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+              "\"Vendor\": \"vend\"}," \
+              "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+              "\"NICs\": {\"ens33\": " \
+              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+              \"Type\": \"Twisted Pair\"}}," \
+              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+              "\"Model\": \"mod\"}}"
+
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request(Request(req, req_id))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request.id, req_id)
+
+    def test_match2(self):
+        """
+        more than one request in request file, one request match bare metal
         :return:
         """
+        req_id1 = str(uuid.uuid4())
+        req1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
 
-    def test_3(self):
-        """
-        more than one request in requests file, but only one of requests match bare metal
-        :return:
-        """
+        req2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"1111111\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
 
-    def test_4(self):
-        """
-        more than one request in requests file, but no one of them match bare metal
-        :return:
-        """
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
 
-    def test_5(self):
-        """
-        more than one request in request file, and more than one request match bare metal
-        :return:
-        """
+        self.api.handle_new_request(Request(req1, req_id1))
+        self.api.handle_new_request(Request(req2))
 
-    def test_9(self):
-        """
-        request with no requirements, but with other_prop and os
-        :return:
-        """
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request.id, req_id1)
 
-        bare_metal = ("{\"name\": \"name\","
-                      " \"id\": \"id1\","
-                      " \"os\": \"Linux\"}")
+    def test_match_by_time(self):
+        """
+        more than one request in request file, and more than one request match bare metal (same score)
+        :return: request with highest creation time
+        """
+        req_id1 = str(uuid.uuid4())
+        req1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
+
+        req_id2 = str(uuid.uuid4())
+        req2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
+
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request(Request(req1, req_id1))
+        time.sleep(DELAY_SECONDS)
+        self.api.handle_new_request(Request(req2, req_id2))
+
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request.id, req_id1)
+
+    def test_match_by_time_middle_match(self):
+        """
+        request file contatins request(1) that dont match bare metal,
+        comes new request(2) that match, later comes another request(3) that match
+        :return: request with highest creation time(request2)
+        """
+        req1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"2\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
 
         req_id = str(uuid.uuid4())
-        request = Request("{\"other_prop\": {\"name\": \"name\","
-                          " \"id\": \"id1\"},"
-                          " \"os\": \"Linux\"}", req_id)
-        api = Api()
-        api.handle_new_request(request)
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal)
+        req_match1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                        \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
 
-        # read all requests from a file
-        req_list = JsonUtils.read_json_from_file()
+        req_match2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                        \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+               "\"Vendor\": \"vend\"}," \
+               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+               "\"NICs\": {\"ens33\": " \
+               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+               \"Type\": \"Twisted Pair\"}}," \
+               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+               "\"Model\": \"mod\"}}"
 
-        m = MatchMaker()
-        res = m.find_match_by_requirements(json_bare_metal,
-                                           req_list)
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
 
-        self.assertEquals(res[0].id, req_id)
+        self.api.handle_new_request(Request(req1))
+        time.sleep(DELAY_SECONDS)
+        self.api.handle_new_request(Request(req_match1, req_id))
+        time.sleep(DELAY_SECONDS)
+        self.api.handle_new_request(Request(req_match2))
 
-    def test_10(self):
-        """
-        request with requirements, but without other_prop
-        :return:
-        """
-
-        bare_metal = ("{\"name\": \"name\"," \
-                      " \"id\": \"id1\"," \
-                      " \"os\": \"Linux\"}")
-
-        req_id = str(uuid.uuid4())
-        request = Request("{\"requirements\": {\"name\": \"name\"," \
-                          " \"id\": \"id1\"}," \
-                          " \"os\": \"Linux\"}", req_id)
-        api = Api()
-        api.handle_new_request(request)
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal)
-
-        # read all requests from a file
-        req_list = JsonUtils.read_json_from_file()
-
-        m = MatchMaker()
-        res = m.find_match_by_requirements(json_bare_metal,
-                                           req_list)
-
-        self.assertEquals(res[0].id, req_id)
-
-    def test_6(self):
-        """
-        request with: no requirements, no other_prop
-        :return:
-        """
-        bare_metal = ("{\"name\": \"name\","
-                      " \"id\": \"id1\","
-                      " \"os\": \"Linux\"}")
-
-        req_id = str(uuid.uuid4())
-        request = Request("{\"os\": \"Linux\"}", req_id)
-        api = Api()
-        api.handle_new_request(request)
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal)
-
-        # read all requests from a file
-        req_list = JsonUtils.read_json_from_file()
-
-        m = MatchMaker()
-        res = m.find_match_by_requirements(json_bare_metal,
-                                           req_list)
-
-        self.assertEquals(res[0].id, req_id)
-
-    def test_7(self):
-        """
-        request with requirements that dont match bare metal
-        :return:
-        """
-        bare_metal = ("{\"name\": \"name\","
-                      " \"id\": \"id1\","
-                      " \"os\": \"os\"}")
-
-        req_id = str(uuid.uuid4())
-        request = Request("{\"requirements\": {\"name\": \"somename\"," \
-                          " \"id\": \"id1\"}," \
-                          " \"os\": \"Linux\"}", req_id)
-        api = Api()
-        api.handle_new_request(request)
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal)
-
-        # read all requests from a file
-        req_list = JsonUtils.read_json_from_file()
-
-        m = MatchMaker()
-        res = m.find_match_by_requirements(json_bare_metal,
-                                           req_list)
-
-        self.assertEquals(res.__len__(), 0)
-
-    def test_8(self):
-        """
-        request with requirements that fully match bare metal
-        :return:
-        """
-        bare_metal = ("{\"name\": \"name\"," \
-                      " \"id\": \"id1\"," \
-                      " \"os\": \"os\"}")
-
-        req_id = str(uuid.uuid4())
-        request = Request("{\"requirements\": {\"name\": \"name\"," \
-                          " \"id\": \"id1\"}," \
-                          " \"os\": \"Linux\"}", req_id)
-        api = Api()
-        api.handle_new_request(request)
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal)
-
-        # read all requests from a file
-        req_list = JsonUtils.read_json_from_file()
-
-        m = MatchMaker()
-        res = m.find_match_by_requirements(json_bare_metal,
-                                           req_list)
-
-        self.assertEquals(res[0].id, req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request.id, req_id)
