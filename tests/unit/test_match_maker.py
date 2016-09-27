@@ -1,14 +1,11 @@
 import os
+import time
 import unittest
 import uuid
-
-import time
 
 from Luke.Api import Api
 from Luke.BareMetal import BareMetal
 from Luke.Request import Request
-from Luke.matchMaker.MatchMaker import MatchMaker
-from Luke.utils import JsonUtils
 
 DELAY_SECONDS = 2
 
@@ -17,7 +14,7 @@ class TestMatchMaker(unittest.TestCase):
     def setUp(self):
         self.api = Api()
         if 'LUKE_PATH' not in os.environ:
-            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "..\..\\")
+            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
 
     def test_no_request(self):
         """
