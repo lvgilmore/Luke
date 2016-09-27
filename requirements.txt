@@ -1,2 +1,3 @@
 ipaddr
 requests
+configparser

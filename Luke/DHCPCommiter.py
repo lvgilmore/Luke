@@ -18,21 +18,20 @@ This module manipulates the DHCP configuration file
 @author: Geiger
 @created: 11/09/2016
 """
+
 import os
+
 from ConfigParser import ConfigParser
+from ipaddr import IPv4Address
+from ipaddr import IPv4Network
 from logging import getLogger
-from os import getpid
-from os import kill
-from os import remove
-from os import system
 from random import uniform
 from socket import gethostbyaddr
 from socket import herror
 
-from ipaddr import IPv4Address
-from ipaddr import IPv4Network
-
+from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
+from Luke.Request import Request
 from Luke.utils.DHCPConfParser import load as dhcp_load
 from Luke.utils.DHCPConfParser import save as dhcp_save
 from Luke.utils.Utils import Utils
@@ -72,6 +71,13 @@ class DHCPCommiter(ICommiter):
         :return: structured host
         :rtype: dict
         """
+        if isinstance(host, dict):
+            pass
+        elif isinstance(host, str):
+            host = BareMetal(host).__dict__
+        elif isinstance(host, BareMetal):
+            host = host.__dict__
+
         if "hostname" in host:
             pass
         elif len(host.keys()) == 1 and isinstance(host.values()[0], dict):
@@ -131,7 +137,7 @@ class DHCPCommiter(ICommiter):
     def _lock_dhcp(self):
         lock_file = self.dhcp_config_file + ".lock"
         locker = {"pid": 0, "count": 0}
-        pid = getpid()
+        pid = os.getpid()
         for i in range(0, 10):
             try:
                 f = open(lock_file, 'r')
