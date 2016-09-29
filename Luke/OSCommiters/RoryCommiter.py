@@ -1,4 +1,3 @@
-#! /usr/bin/python2.7
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +14,8 @@
 from ipaddr import AddressValueError
 from ipaddr import IPv4Address
 from logging import getLogger
-from requests import put as rest_put
 from json import dumps
+from requests import put as rest_put
 
 from Luke.OSCommiters.ICommiter import ICommiter
 from Luke.utils.Utils import Utils
