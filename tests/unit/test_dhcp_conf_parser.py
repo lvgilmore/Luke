@@ -19,10 +19,6 @@ import Luke.utils.DHCPConfParser as DHCPConfParser
 from Luke.utils.DHCPConfParser import ParseError
 
 SAMPLE_FILE = "/tmp/dhcpd.conf"
-#        invalid = "#shity shit" \
-#                  "subnet 10.0.0.0 netmask {" \
-#                  "\t\t\t option routers 10.0.0.1"
-
 
 class TestParser(unittest.TestCase):
 
@@ -45,7 +41,6 @@ class TestParser(unittest.TestCase):
                 }
             }
             """)
-            f.close()
 
     def tearDown(self):
         remove(SAMPLE_FILE)

@@ -147,9 +147,8 @@ class DHCPCommiter(ICommiter):
                 system("sleep {}".format(uniform(0, 1)))
             except IOError:
                 # lock DHCP
-                f = open(lock_file, 'w')
-                f.write(str(pid))
-                f.close()
+                with open(lock_file, 'w') as f:
+                    f.write(str(pid))
                 # check lock
                 return self._check_lock(lock_file=lock_file, current=pid)
         return False

@@ -11,13 +11,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import json
 
 from Luke.Request import OS
 from Luke.Request import OTHER_PROP
 from Luke.Request import Request
-from Luke.Request import REQUIREMENTS
+from Luke.Request import REQS
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
@@ -28,21 +27,21 @@ def convert_from_json_to_obj(obj_to_convert):
 
 
 def append_json_to_file(json_entry):
-    with io.open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
+    with open(REQUESTS_FILE_NAME, 'r') as f:
         feeds = json.load(f)
-    with io.open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
+    with open(REQUESTS_FILE_NAME, 'w') as f:
         feeds.append(json_entry)
         f.write(unicode(json.dumps(feeds, ensure_ascii=False)))
 
 
 def init_file():
     # init file with an empty list
-    with io.open(REQUESTS_FILE_NAME, mode='w', encoding="utf-8") as f:
+    with open(REQUESTS_FILE_NAME, 'w') as f:
         f.write(unicode(json.dumps([], ensure_ascii=False)))
 
 
 def read_json_from_file():
-    with io.open(REQUESTS_FILE_NAME, mode='r') as f:
+    with open(REQUESTS_FILE_NAME, 'r') as f:
         requests = json.load(f)
         return parse_requests_to_obj(requests)
 
@@ -59,7 +58,7 @@ def parse_requests_to_obj(requests):
 def parse_req(request):
     req = Request(json.dumps(request), request['id'])
     for key in request.keys():
-        if key == REQUIREMENTS:
+        if key == REQS:
             req.requirements = request[key]
         elif key == OS:
             req.os = request[key]

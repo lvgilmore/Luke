@@ -237,9 +237,8 @@ def save(configurations, conf_file):
             confstring, indent = _build_groups(confstring, indent, raw)
         else:
             raise ParseError
-    f = open(conf_file, 'w')
-    f.write(confstring)
-    f.close()
+    with open(conf_file, 'w') as f:
+        f.write(confstring)
 
 
 def _build_options(confstring, indent, raw):

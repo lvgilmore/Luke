@@ -13,7 +13,7 @@
 
 from Luke.Request import OS
 from Luke.Request import OTHER_PROP
-from Luke.Request import REQUIREMENTS
+from Luke.Request import REQS
 from Luke.utils import JsonUtils
 
 CREATION_TIME = 'creation_time'
@@ -30,7 +30,7 @@ class RequestList(object):
         json_req = dict()
 
         json_req[CREATION_TIME] = request.creation_time
-        json_req[REQUIREMENTS] = request.requirements
+        json_req[REQS] = request.requirements
         json_req[OTHER_PROP] = request.other_prop
         json_req[OS] = request.os
         json_req[REQ_ID] = request.id
