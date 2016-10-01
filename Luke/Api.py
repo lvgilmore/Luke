@@ -10,10 +10,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 
 from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.RequestList import RequestList
 from Luke.utils import JsonUtils
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger()
 
 
 class Api(object):
@@ -47,16 +51,15 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            print(best_match_request.id)
-            print(best_match_request.os)
-            print("\nother prop:")
+            logger.info("{}\n{}\n\nother prop:".format(best_match_request.id,
+                                                       best_match_request.od))
             for i in best_match_request.other_prop:
                 print(i, best_match_request.other_prop[i])
-            print("\nrequirements:")
+            logger.info("\nrequirements:")
             for i in best_match_request.requirements:
                 print(i, best_match_request.requirements[i])
         else:
-            print("no best match found")
+            logger.info("no best match found")
 
         return best_match_request
 

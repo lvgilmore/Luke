@@ -12,10 +12,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ConfigParser import ConfigParser
-from logging import getLogger
+import logging
 import os
 
-logger = getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger()
+
 DEFAULT_SECTION = 'SERVER'
 
 
@@ -167,9 +169,9 @@ class MatchMaker(object):
         score = 0
 
         if not self.parser.has_section(section.upper()):
-            print("no section: " + section)
+            logger.info("no section: {}".format(section))
         elif not self.parser.has_option(section.upper(), key):
-            print("no option: " + key + " in section: " + section)
+            logger.info("no option: {} in section: {}".fomrat(key, section))
         else:
             score = self.parser.get(section.upper(), key)
 
