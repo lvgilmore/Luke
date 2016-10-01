@@ -22,7 +22,6 @@ logger = logging.getLogger()
 
 class Api(object):
     def __init__(self):
-        # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
 
     @staticmethod

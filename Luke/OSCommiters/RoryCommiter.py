@@ -51,7 +51,7 @@ class RoryCommiter(ICommiter):
 
             if len(macs) == 1:
                 mac = macs[0]
-            elif len(macs) == 0:
+            elif not len(macs):
                 logger.error("cannot Rory install - couldn't determine mac")
                 raise RoryError("couldn't determine mac")
             else:
@@ -60,7 +60,7 @@ class RoryCommiter(ICommiter):
                     mac = macs[0]
         url = "http://google.com"
         data = {"profile": profile, "mac": mac}
-        if ip is None:
+        if not ip:
             data["hostname"] = hostname
         else:
             data["ip"] = str(ip)

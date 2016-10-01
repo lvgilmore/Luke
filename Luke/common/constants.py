@@ -10,23 +10,8 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import datetime
-import json
-import uuid
 
-import Luke.common.constants as constants
-
-
-class Request(object):
-
-    def __init__(self, request_str, req_id=str(uuid.uuid4())):
-        json_req = json.loads(request_str)
-
-        self.requirements = json_req[constants.REQS] or {}
-        self.other_prop = json_req[constants.OTHER_PROP] or {}
-        if constants.OS in json_req:
-            self.os = json_req[constants.OS]
-        else:
-            self.os = constants.DEFAULT_OS
-        self.creation_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        self.id = req_id
+REQS = 'requirements'
+OS = 'os'
+OTHER_PROP = 'other_prop'
+DEFAULT_OS = 'Linux'
