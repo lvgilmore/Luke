@@ -11,10 +11,10 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import json
 from json import loads
-from unittest import main
 from unittest import TestCase
+from unittest import main
 
 from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.RoryCommiter import RoryCommiter
@@ -30,12 +30,12 @@ class TestRoryCommiter(TestCase):
         pass
 
     def test_commit(self):
-        req = Request(
-            """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
+        req = """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
             "Speed": "2201.000", "Cores": "1"},
              "Vendor": "vend"},
             "other_prop": {"profile": "shit"},
-            "os": "Rory"} """)
+            "os": "Rory"} """
+        json_req = json.loads(req)
 
         bare_metal = BareMetal(
             """{"Vendor": "vend", "Cpu": {"Sockets": "1", "Arch": "x86_64",
@@ -47,7 +47,7 @@ class TestRoryCommiter(TestCase):
              "sr0": {"Vendor": "VMware", "Size": "5"}},
              "Model": "mod", "ip": "192.168.0.1"}""")
 
-        url, data = self.roryc.commit(bare_metal, req)
+        url, data = self.roryc.commit(bare_metal, Request(json_req))
         data = loads(data)
         self.assertEqual(url, "http://google.com")
         self.assertEqual(data, {"profile": "shit",

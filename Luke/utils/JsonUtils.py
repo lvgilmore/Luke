@@ -14,10 +14,8 @@
 import io
 import json
 
-from Luke.Request import OS
-from Luke.Request import OTHER_PROP
 from Luke.Request import Request
-from Luke.Request import REQUIREMENTS
+from Luke.common import constants
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
@@ -59,10 +57,10 @@ def parse_requests_to_obj(requests):
 def parse_req(request):
     req = Request(request, request['id'])
     for key in request.keys():
-        if key == REQUIREMENTS:
+        if key == constants.REQS:
             req.requirements = request[key]
-        elif key == OS:
+        elif key == constants.OS:
             req.os = request[key]
-        elif key == OTHER_PROP:
+        elif key == constants.OTHER_PROP:
             req.other_prop = request[key]
     return req

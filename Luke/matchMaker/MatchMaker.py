@@ -150,7 +150,7 @@ class MatchMaker(object):
 
         return matched_req_by_requirements
 
-    def get_score(self, section, key):
+    def get_score_value(self, section, key):
         """Get score of given key (option) in section from scores file
 
         :param section:

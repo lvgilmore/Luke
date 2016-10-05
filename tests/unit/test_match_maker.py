@@ -5,7 +5,6 @@ import uuid
 
 from Luke.Api import Api
 from Luke.BareMetal import BareMetal
-from Luke.Request import Request
 
 DELAY_SECONDS = 2
 

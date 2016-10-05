@@ -31,7 +31,6 @@ class Api(object):
         # if os.environ['LUKE_PATH'] == "":
         #     os.environ['LUKE_PATH'] = os.path.dirname(__file__)
 
-        # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
         pass
 
