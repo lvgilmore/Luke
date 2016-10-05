@@ -1,3 +1,5 @@
+#! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +15,7 @@
 
 from Luke.Request import OS
 from Luke.Request import OTHER_PROP
-from Luke.Request import REQS
+from Luke.Request import REQUIREMENTS
 from Luke.utils import JsonUtils
 
 CREATION_TIME = 'creation_time'
@@ -30,10 +32,11 @@ class RequestList(object):
         json_req = dict()
 
         json_req[CREATION_TIME] = request.creation_time
-        json_req[REQS] = request.requirements
+        json_req[REQUIREMENTS] = request.requirements
         json_req[OTHER_PROP] = request.other_prop
         json_req[OS] = request.os
         json_req[REQ_ID] = request.id
 
         # add a request to a file with all open requests
         JsonUtils.append_json_to_file(json_req)
+

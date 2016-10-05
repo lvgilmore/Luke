@@ -41,6 +41,7 @@ class TestParser(unittest.TestCase):
                 }
             }
             """)
+            f.close()
 
     def tearDown(self):
         remove(SAMPLE_FILE)

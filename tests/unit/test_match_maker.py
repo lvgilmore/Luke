@@ -36,6 +36,27 @@ class TestMatchMaker(unittest.TestCase):
 
         self.assertEqual(best_request, None)
 
+    def test_request_empty(self):
+        """
+        got new bare metal, no requests in file
+        :return: no best match
+        """
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request("{}")
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+
+        self.assertEqual(best_request, None)
+
     def test_no_match(self):
         """
         bare metal not match requirements
@@ -64,7 +85,7 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req))
+        self.api.handle_new_request(req)
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
 
         self.assertEqual(best_request, None)
@@ -72,9 +93,8 @@ class TestMatchMaker(unittest.TestCase):
     def test_no_requirements(self):
         """
         request with no requirements
-        :return: request
+        :return: request not in a valid format
         """
-        req_id = str(uuid.uuid4())
         req = "{\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
               "\"NICs\": {\"ens33\": " \
               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
@@ -94,10 +114,10 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req, req_id))
+        self.api.handle_new_request(req)
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
 
-        self.assertEqual(best_request.id, req_id)
+        self.assertEqual(best_request, None)
 
     def test_match(self):
         """
@@ -127,7 +147,7 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req, req_id))
+        self.api.handle_new_request(req, req_id)
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
         self.assertEqual(best_request.id, req_id)
 
@@ -170,8 +190,8 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req1, req_id1))
-        self.api.handle_new_request(Request(req2))
+        self.api.handle_new_request(req1, req_id1)
+        self.api.handle_new_request(req2)
 
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
         self.assertEqual(best_request.id, req_id1)
@@ -216,9 +236,9 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req1, req_id1))
+        self.api.handle_new_request(req1, req_id1)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(Request(req2, req_id2))
+        self.api.handle_new_request(req2, req_id2)
 
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
         self.assertEqual(best_request.id, req_id1)
@@ -243,25 +263,25 @@ class TestMatchMaker(unittest.TestCase):
         req_id = str(uuid.uuid4())
         req_match1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
                         \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
-               "\"Vendor\": \"vend\"}," \
-               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
-               "\"NICs\": {\"ens33\": " \
-               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
-               \"Type\": \"Twisted Pair\"}}," \
-               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
-               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+                     "\"Vendor\": \"vend\"}," \
+                     "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                     \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}}"
 
         req_match2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
                         \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
-               "\"Vendor\": \"vend\"}," \
-               "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
-               "\"NICs\": {\"ens33\": " \
-               "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
-               \"Type\": \"Twisted Pair\"}}," \
-               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
-               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+                     "\"Vendor\": \"vend\"}," \
+                     "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                     \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}}"
 
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
@@ -274,11 +294,57 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(Request(req1))
+        self.api.handle_new_request(req1)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(Request(req_match1, req_id))
+        self.api.handle_new_request(req_match1, req_id)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(Request(req_match2))
+        self.api.handle_new_request(req_match2)
 
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
         self.assertEqual(best_request.id, req_id)
+
+    def test_baremetal_empty(self):
+        """
+        one request with requirements that match bare metal
+        :return: request
+        """
+        req_id = str(uuid.uuid4())
+        req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+              "\"Vendor\": \"vend\"}," \
+              "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+              "\"NICs\": {\"ens33\": " \
+              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+              \"Type\": \"Twisted Pair\"}}," \
+              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+              "\"Model\": \"mod\"}}"
+
+        bare_metal = "{}"
+
+        self.api.handle_new_request(req, req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request, None)
+
+    def test_request_not_valid(self):
+        """
+        one request with requirements that match bare metal
+        :return: request
+        """
+        req_id = str(uuid.uuid4())
+        req = "{\"Cpu\": \"Cpu\"}"
+
+        bare_metal = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \
+                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"Model\": \"mod\"}"
+
+        self.api.handle_new_request(req, req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.assertEqual(best_request, None)

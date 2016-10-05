@@ -1,3 +1,5 @@
+# ! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -10,27 +12,25 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from ConfigParser import ConfigParser
-import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-logger = logging.getLogger()
+from ConfigParser import ConfigParser
 
+from logging import getLogger
+
+logger = getLogger(__name__)
 DEFAULT_SECTION = 'SERVER'
+SECTIONS_WITH_SUBSECTIONS = {'NICs', 'Disks'}
 
 
 class MatchMaker(object):
-
     def __init__(self):
         self.parser = ConfigParser()
 
         # read scores from file
         # self.parser.read(os.path.relpath('resources/scores.conf',
         #                                  os.path.join(os.path.dirname(__file__))))
-        self.parser.read(os.path.join(os.environ['LUKE_PATH'],
-                                      "resources/scores.conf"))
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
         self.best_match_req = {'request': None, 'score': 0}
 
     def find_valid_candidate(self, bare_metal, req_list):
@@ -44,31 +44,27 @@ class MatchMaker(object):
         :param req_list:
         :return:
         """
+        value = None
 
         for request in req_list:
             curr_req_score = 0
             for bare_metal_key in bare_metal.keys():
                 if request.requirements and \
                                 bare_metal_key in request.requirements:
-                    curr_req_score += self.find_match(
-                        request.requirements[bare_metal_key],
-                        bare_metal[bare_metal_key],
-                        bare_metal_key, curr_req_score)
+                    value = request.requirements[bare_metal_key]
 
                 elif request.other_prop and \
-                        bare_metal_key in request.other_prop:
-                    curr_req_score += self.find_match(
-                        request.other_prop[bare_metal_key],
-                        bare_metal[bare_metal_key],
-                        bare_metal_key, curr_req_score)
+                                bare_metal_key in request.other_prop:
+                    value = request.other_prop[bare_metal_key]
 
                 elif bare_metal_key in request.os and \
-                        bare_metal[bare_metal_key] == request[bare_metal_key]:
-                    # curr_req_score += self.calc_score(bare_metal_key)
-                    curr_req_score += self.find_match(
-                        request.os[bare_metal_key],
-                        bare_metal[bare_metal_key],
-                        bare_metal_key, curr_req_score)
+                                bare_metal[bare_metal_key] == request[bare_metal_key]:
+                    value = request.os[bare_metal_key]
+
+                curr_req_score = self.calc_score(value,
+                                                 bare_metal[bare_metal_key],
+                                                 bare_metal_key,
+                                                 curr_req_score)
 
             # find the best match by the highest score
             self.compare_scores(curr_req_score, request)
@@ -79,7 +75,7 @@ class MatchMaker(object):
         if curr_req_score > self.best_match_req['score']:
             self.best_match_req = {'request': request, 'score': curr_req_score}
         elif self.best_match_req['score'] != 0 and \
-                self.best_match_req['score'] == curr_req_score:
+                        self.best_match_req['score'] == curr_req_score:
             # compare by creation time
             if request.creation_time < \
                     self.best_match_req['request'].creation_time:
@@ -87,7 +83,7 @@ class MatchMaker(object):
                                        'score': curr_req_score}
         return self.best_match_req['request']
 
-    def find_match(self, d1, d2, section, score=0):
+    def calc_score(self, d1, d2, section, score=0):
         """
         comparing d1 to d2
         :param score:
@@ -99,19 +95,15 @@ class MatchMaker(object):
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
-                    if section == 'NICs':
-                        score += self.find_match(d1[key],
-                                                 d2[key], 'NICS', score)
-                    elif section == 'Disks':
-                        score += self.find_match(d1[key],
-                                                 d2[key], 'DISKS', score)
+                    if section in SECTIONS_WITH_SUBSECTIONS:
+                        score += self.calc_score(d1[key], d2[key], section, score)
                     else:
-                        score += self.find_match(d1[key], d2[key], key, score)
+                        score += self.calc_score(d1[key], d2[key], key, score)
                 else:
                     if d1[key] == d2[key]:
-                        score += self.get_score(section, key)
+                        score += self.get_score_value(section, key)
         elif d1 == d2:
-            score = self.get_score(DEFAULT_SECTION, section)
+            score = self.get_score_value(DEFAULT_SECTION, section)
         return score
 
     def check_if_different(self, d1, d2):
@@ -132,8 +124,7 @@ class MatchMaker(object):
                     break
                 else:
                     if isinstance(d1[key], dict):
-                        are_different = self.check_if_different(d1[key],
-                                                                d2[key])
+                        are_different = self.check_if_different(d1[key], d2[key])
                         if are_different:
                             break
                     else:
@@ -169,9 +160,9 @@ class MatchMaker(object):
         score = 0
 
         if not self.parser.has_section(section.upper()):
-            logger.info("no section: {}".format(section))
+            logger.debug("No section: " + section)
         elif not self.parser.has_option(section.upper(), key):
-            logger.info("no option: {} in section: {}".fomrat(key, section))
+            logger.debug("No option: " + key + " in section: " + section)
         else:
             score = self.parser.get(section.upper(), key)
 

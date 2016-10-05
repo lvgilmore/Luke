@@ -10,23 +10,43 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import logging
 
-from Luke.matchMaker.MatchMaker import MatchMaker
+import json
+import uuid
+from logging import getLogger
+
+from Luke.Request import Request
 from Luke.RequestList import RequestList
+from Luke.matchMaker.MatchMaker import MatchMaker
 from Luke.utils import JsonUtils
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-logger = logging.getLogger()
+REQUIREMENTS = 'requirements'
+OTHER_PROP = 'other_prop'
+
+logger = getLogger(__name__)
 
 
 class Api(object):
     def __init__(self):
+        # if os.environ['LUKE_PATH'] == "":
+        #     os.environ['LUKE_PATH'] = os.path.dirname(__file__)
+
+        # SHOULD RUN ONLY ONCE
         JsonUtils.init_file()
+        pass
+
+    def handle_new_request(self, req, req_id=str(uuid.uuid4())):
+        json_req = json.loads(req)
+        if self.check_if_req_valid(json_req):
+            RequestList.handle_new_request(Request(json_req, req_id))
 
     @staticmethod
-    def handle_new_request(req):
-        RequestList.handle_new_request(req)
+    def check_if_req_valid(req):
+        if REQUIREMENTS not in req or OTHER_PROP not in req:
+            logger.error("request is not in valid format")
+            print("request is not in valid format")
+            return False
+        return True
 
     @staticmethod
     def handle_new_bare_metal(bare_metal):
@@ -50,15 +70,16 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            logger.info("{}\n{}\n\nother prop:".format(best_match_request.id,
-                                                       best_match_request.od))
+            print(best_match_request.id)
+            print(best_match_request.os)
+            print("\nother prop:")
             for i in best_match_request.other_prop:
                 print(i, best_match_request.other_prop[i])
-            logger.info("\nrequirements:")
+            print("\nrequirements:")
             for i in best_match_request.requirements:
                 print(i, best_match_request.requirements[i])
         else:
-            logger.info("no best match found")
+            print("no best match found")
 
         return best_match_request
 

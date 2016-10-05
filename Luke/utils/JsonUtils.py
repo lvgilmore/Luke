@@ -11,10 +11,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import io
 import json
 
-import Luke.common.constants as constants
-import Luke.Request as Request
+from Luke.Request import OS
+from Luke.Request import OTHER_PROP
+from Luke.Request import Request
+from Luke.Request import REQUIREMENTS
 
 REQUESTS_FILE_NAME = "Requests.json"
 SCORE_KEY = 'score'
@@ -25,21 +28,21 @@ def convert_from_json_to_obj(obj_to_convert):
 
 
 def append_json_to_file(json_entry):
-    with open(REQUESTS_FILE_NAME, 'r') as f:
+    with io.open(REQUESTS_FILE_NAME, mode='r', encoding='utf-8') as f:
         feeds = json.load(f)
-    with open(REQUESTS_FILE_NAME, 'w') as f:
+    with io.open(REQUESTS_FILE_NAME, mode='w', encoding='utf-8') as f:
         feeds.append(json_entry)
         f.write(unicode(json.dumps(feeds, ensure_ascii=False)))
 
 
 def init_file():
     # init file with an empty list
-    with open(REQUESTS_FILE_NAME, 'w') as f:
+    with io.open(REQUESTS_FILE_NAME, mode='w', encoding="utf-8") as f:
         f.write(unicode(json.dumps([], ensure_ascii=False)))
 
 
 def read_json_from_file():
-    with open(REQUESTS_FILE_NAME, 'r') as f:
+    with io.open(REQUESTS_FILE_NAME, mode='r') as f:
         requests = json.load(f)
         return parse_requests_to_obj(requests)
 
@@ -54,12 +57,12 @@ def parse_requests_to_obj(requests):
 
 
 def parse_req(request):
-    req = Request(json.dumps(request), request['id'])
+    req = Request(request, request['id'])
     for key in request.keys():
-        if key == constants.REQS:
+        if key == REQUIREMENTS:
             req.requirements = request[key]
-        elif key == constants.OS:
+        elif key == OS:
             req.os = request[key]
-        elif key == constants.OTHER_PROP:
+        elif key == OTHER_PROP:
             req.other_prop = request[key]
     return req

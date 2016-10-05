@@ -1,1 +1,1 @@
-[{"requirements": {}, "other_prop": {"NICs": {"ens33": {"Type": "Twisted Pair", "Mac": "00:0c:29:3d:5e:ce", "Speed": "1000Mb/s"}}, "Disks": {"sr0": {"Vendor": "VMware", "Size": "5"}, "sda": {"Vendor": "VMware", "Size": "2"}}, "Ram": {"Size": "3062784"}, "Model": "mod"}, "creation_time": "20160927095517695245", "os": "Linux", "id": "a8332c7c-86b2-481d-990b-aa497ca37aea"}]
+[]

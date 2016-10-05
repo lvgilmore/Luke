@@ -31,6 +31,7 @@ from socket import herror
 
 from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
+from Luke.Request import Request
 from Luke.utils.DHCPConfParser import load as dhcp_load
 from Luke.utils.DHCPConfParser import save as dhcp_save
 from Luke.utils.Utils import Utils
@@ -44,8 +45,7 @@ class DHCPCommiter(ICommiter):
         self.parser = ConfigParser()
         if os.environ['LUKE_PATH'] == "":
             os.environ['LUKE_PATH'] = os.path.dirname(__file__)
-        self.parser.read(os.path.join(os.environ['LUKE_PATH'],
-                                      'resources/config.conf'))
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], 'resources/config.conf'))
         self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
 
     def commit(self, bare_metal, request):
@@ -147,8 +147,9 @@ class DHCPCommiter(ICommiter):
                 system("sleep {}".format(uniform(0, 1)))
             except IOError:
                 # lock DHCP
-                with open(lock_file, 'w') as f:
-                    f.write(str(pid))
+                f = open(lock_file, 'w')
+                f.write(str(pid))
+                f.close()
                 # check lock
                 return self._check_lock(lock_file=lock_file, current=pid)
         return False

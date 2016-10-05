@@ -1,3 +1,5 @@
+#! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -237,8 +239,9 @@ def save(configurations, conf_file):
             confstring, indent = _build_groups(confstring, indent, raw)
         else:
             raise ParseError
-    with open(conf_file, 'w') as f:
-        f.write(confstring)
+    f = open(conf_file, 'w')
+    f.write(confstring)
+    f.close()
 
 
 def _build_options(confstring, indent, raw):
