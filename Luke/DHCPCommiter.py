@@ -20,14 +20,14 @@ This module manipulates the DHCP configuration file
 """
 
 import os
-
 from ConfigParser import ConfigParser
-from ipaddr import IPv4Address
-from ipaddr import IPv4Network
 from logging import getLogger
 from random import uniform
 from socket import gethostbyaddr
 from socket import herror
+
+from ipaddr import IPv4Address
+from ipaddr import IPv4Network
 
 from Luke.BareMetal import BareMetal
 from Luke.OSCommiters.ICommiter import ICommiter
@@ -41,16 +41,20 @@ SECTION = 'SECTION'
 
 
 class DHCPCommiter(ICommiter):
-    def __init__(self):
+    def __init__(self, dhcp_file=None):
         self.parser = ConfigParser()
         if os.environ['LUKE_PATH'] == "":
             os.environ['LUKE_PATH'] = os.path.dirname(__file__)
         self.parser.read(os.path.join(os.environ['LUKE_PATH'], 'resources/config.conf'))
-        self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
+        # self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
+        if dhcp_file is None:
+            self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
+        else:
+            self.dhcp_config_file = dhcp_file
 
     def commit(self, bare_metal, request):
         bare_metal = DHCPCommiter._build_host(bare_metal)
-        request = DHCPCommiter._build_os(request)
+        request = self._build_os(request)
         if self._lock_dhcp():
             dhcp_conf = DHCPConfs(dhcp_load(self.dhcp_config_file))
             dhcp_conf.add_host(subnet=bare_metal["subnet"],
@@ -84,24 +88,24 @@ class DHCPCommiter(ICommiter):
             key = host.keys()[0]
             host = host.values()[0]
             host["hostname"] = key
-        elif "IP" in host:
+        elif "ip" in host:
             try:
-                host["hostname"] = gethostbyaddr(str(host["IP"]))
+                host["hostname"] = gethostbyaddr(str(host["ip"]))
             except herror:
-                host["hostname"] = str(host["IP"])
+                host["hostname"] = str(host["ip"])
         else:
             logger.error("couldn't determine hostname for host "
                          "{}".format(str(host)))
             return False
         if "subnet" not in host:
-            if "IP" in host:
-                host["subnet"] = Utils.ip_to_subnet(host["IP"])
+            if "ip" in host:
+                host["subnet"] = Utils.ip_to_subnet(host["ip"])
             else:
                 logger.debug(
                     "DHCPCommiter.commit was called without IP nor segment")
         return host
 
-    def _build_os(self, os):
+    def _build_os(self, request):
         """like _build_host, but for os
 
         :param host: unstructured os and related info
@@ -109,12 +113,18 @@ class DHCPCommiter(ICommiter):
         :return: structured os and related info
         :rtype: dict
         """
-        assert isinstance(os, dict)
-        if "next server" not in os:
-            os["next-server"] = self.parser.get(SECTION, 'NEXT_SERVER')
-        if "filename" not in os:
-            os["filename"] = self.parser.get(SECTION, 'TFTP_FILENAME')
-        return os
+        if isinstance(request, dict):
+            pass
+        elif isinstance(request, str):
+            request = Request(request).__dict__
+        elif isinstance(request, Request):
+            request = request.__dict__
+
+        if "next server" not in request:
+            request["next-server"] = self.parser.get(request['os'], 'NEXT_SERVER')
+        if "filename" not in request:
+            request["filename"] = self.parser.get(request['os'], 'TFTP_FILENAME')
+        return request
 
     @staticmethod
     def _build_dhcp_host(host, os):
@@ -122,14 +132,14 @@ class DHCPCommiter(ICommiter):
         dhcp_host = {hostname: {"options": {}}}
         dhcp_host[hostname]["options"]["hardware"] = []
         dhcp_host[hostname]["options"]["fixed-address"] = []
-        if "IP" in host:
-            dhcp_host[hostname]["options"]["fixed-address"].append(host["IP"])
+        if "ip" in host:
+            dhcp_host[hostname]["options"]["fixed-address"].append(host["ip"])
         for key, nic in host["NICs"].iteritems():
             dhcp_host[hostname]["options"]["hardware"].append(
                 "ethernet " + str(nic["Mac"]))
-            if "IP" in nic:
+            if "ip" in nic:
                 dhcp_host[hostname]["options"]["fixed-address"].append(
-                    nic["IP"])
+                    nic["ip"])
         dhcp_host[hostname]["options"]["next-server"] = os["next-server"]
         dhcp_host[hostname]["options"]["filename"] = os["filename"]
         return dhcp_host
@@ -144,7 +154,7 @@ class DHCPCommiter(ICommiter):
                 f.close()
                 locker = self._check_deadlock(locker=locker,
                                               lock_file=lock_file)
-                system("sleep {}".format(uniform(0, 1)))
+                os.system("sleep {}".format(uniform(0, 1)))
             except IOError:
                 # lock DHCP
                 f = open(lock_file, 'w')
@@ -162,17 +172,17 @@ class DHCPCommiter(ICommiter):
             locker = {"pid": current,
                       "count": 0}
         if locker["count"] > 3:
-            if system("ps -ef | grep ' {} ' | grep -vq grep".format(
+            if os.system("ps -ef | grep ' {} ' | grep -vq grep".format(
                     str(current))) == 0:
                 logger.warning(
                     "attempting to kill {}. it holds lock for too long".format(
                         str(current)))
-                kill(int(current), 15)
+                os.kill(int(current), 15)
             else:
                 logger.info(
                     "process {} locking dhcp but seems dead."
                     " deleting the lock file".format(str(current)))
-                remove(lock_file)
+                os.remove(lock_file)
         return locker
 
     def _check_lock(self, lock_file, current):
@@ -185,9 +195,9 @@ class DHCPCommiter(ICommiter):
 
     def _release_dhcp(self):
         lock_file = self.dhcp_config_file + ".lock"
-        pid = getpid()
+        pid = os.getpid()
         if self._check_lock(lock_file=lock_file, current=pid):
-            remove(lock_file)
+            os.remove(lock_file)
         else:
             logger.critical("_release_dhcp was called for process {}, "
                             "but I don't hold the lock!".format(pid))
@@ -208,7 +218,7 @@ class DHCPConfs(object):
             self.subnets = confs["subnets"]
             self.hosts = confs["hosts"]
             self.groups = confs["groups"]
-            self.shared_nets = confs["shared_nets"]
+            self.shared_nets = confs["shared_networks"]
 
     def add_host(self, subnet, host):
         path = self._find_host(host=host)
@@ -278,7 +288,7 @@ class LockError(Exception):
 if __name__ == "__main__":
     dhc = DHCPCommiter("../resources/dhcp-example.conf")
     dhc.commit(bare_metal={"subnet": IPv4Network("192.168.0.1/24"),
-                           "IP": IPv4Address("192.168.0.3"),
+                           "ip": IPv4Address("192.168.0.3"),
                            "NICs": {"eth0": {"Mac": "00:11:22:33:44:66",
                                              "Speed": 100}
                                     }
