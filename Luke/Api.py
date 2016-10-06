@@ -12,6 +12,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import uuid
 from logging import getLogger
 
@@ -24,6 +25,10 @@ REQUIREMENTS = 'requirements'
 OTHER_PROP = 'other_prop'
 
 logger = getLogger(__name__)
+logging.basicConfig(filename='LukeLogs.log',
+                    format='[%(asctime)s] [%(levelname)s] %(module)s - %(funcName)s:   %(message)s',
+                    level=logging.DEBUG,
+                    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
 class Api(object):
@@ -35,6 +40,7 @@ class Api(object):
         pass
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
+        logger.info("start handling new request")
         json_req = json.loads(req)
         if self.check_if_req_valid(json_req):
             RequestList.handle_new_request(Request(json_req, req_id))
@@ -79,6 +85,7 @@ class Api(object):
                 print(i, best_match_request.requirements[i])
         else:
             print("no best match found")
+            logger.info("no best match found")
 
         return best_match_request
 

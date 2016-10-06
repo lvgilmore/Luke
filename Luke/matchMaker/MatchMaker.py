@@ -92,6 +92,7 @@ class MatchMaker(object):
         :param d2:
         :return:
         """
+        logger.info("start calc score")
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
