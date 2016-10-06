@@ -52,7 +52,6 @@ class Api(object):
         self.web_server.add_url_rule(rule='/', endpoint='index', view_func=Api.index, methods=['GET'])
         self.web_server.add_url_rule(rule='/request', endpoint='requests', view_func=Api.handle_new_request,
                                      methods=['PUT', 'POST'])
-        pass
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
         logger.info("start handling new request")

@@ -20,6 +20,7 @@ from unittest import main
 
 from Luke.BareMetal import BareMetal
 from Luke.DHCPCommiter import DHCPCommiter
+from Luke.Request import Request
 from Luke.utils import DHCPConfParser
 
 SECTION = 'SECTION'
@@ -76,7 +77,7 @@ class TestDHCPCommiter(TestCase):
              "sr0": {"Vendor": "VMware", "Size": "5"}},
              "Model": "mod", "ip": "192.168.0.1"}""")
 
-        self.commiter.commit(bare_metal=bare_metal, request=json_req)
+        self.commiter.commit(bare_metal=bare_metal, request=Request(json_req))
 
         self.assertEqual(DHCPConfParser.load(self.dhcp_cong_file),
                          DHCPConfParser.load(os.path.join(os.environ['LUKE_PATH'],
