@@ -11,9 +11,13 @@ DELAY_SECONDS = 2
 
 class TestMatchMaker(unittest.TestCase):
     def setUp(self):
-        self.api = Api()
         if 'LUKE_PATH' not in os.environ:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
+
+        self.api = Api()
+
+    def tearDown(self):
+        os.remove('Requests.json')
 
     def test_no_request(self):
         """

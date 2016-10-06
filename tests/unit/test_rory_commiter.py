@@ -12,6 +12,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import json
+import os
 from json import loads
 from unittest import TestCase
 from unittest import main
@@ -51,7 +52,7 @@ class TestRoryCommiter(TestCase):
 
         url, data = self.roryc.commit(bare_metal, Request(json_req))
         data = loads(data)
-        self.assertEqual(url, "http://google.com")
+        self.assertEqual(url, "http://google.com/")
         self.assertEqual(data, {"profile": "shit",
                                 "mac": "00:0c:29:3d:5e:ce",
                                 "ip": "192.168.0.1"})

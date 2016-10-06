@@ -26,10 +26,6 @@ SECTIONS_WITH_SUBSECTIONS = {'NICs', 'Disks'}
 class MatchMaker(object):
     def __init__(self):
         self.parser = ConfigParser()
-
-        # read scores from file
-        # self.parser.read(os.path.relpath('resources/scores.conf',
-        #                                  os.path.join(os.path.dirname(__file__))))
         self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
         self.best_match_req = {'request': None, 'score': 0}
 

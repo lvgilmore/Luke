@@ -38,9 +38,8 @@ logging.basicConfig(filename='LukeLogs.log',
 class Api(object):
     def __init__(self):
         # set LUKE_PATH
-        if 'LUKE_PATH' in os.environ:
-            os.environ['LUKE_PATH'] = os.path.dirname(__file__)
-
+        if 'LUKE_PATH' not in os.environ:
+            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
         # prepare pending requests file
         JsonUtils.init_file()
 

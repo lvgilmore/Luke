@@ -46,7 +46,6 @@ class DHCPCommiter(ICommiter):
         if os.environ['LUKE_PATH'] == "":
             os.environ['LUKE_PATH'] = os.path.dirname(__file__)
         self.parser.read(os.path.join(os.environ['LUKE_PATH'], 'resources/config.conf'))
-        # self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
         if dhcp_file is None:
             self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
         else:
@@ -218,7 +217,7 @@ class DHCPConfs(object):
             self.subnets = confs["subnets"]
             self.hosts = confs["hosts"]
             self.groups = confs["groups"]
-            self.shared_nets = confs["shared_networks"]
+            self.shared_nets = confs["shared-networks"]
 
     def add_host(self, subnet, host):
         path = self._find_host(host=host)
