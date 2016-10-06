@@ -12,6 +12,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
+from ConfigParser import ConfigParser
 from ipaddr import AddressValueError
 from ipaddr import IPv4Address
 from logging import getLogger
@@ -26,7 +29,15 @@ logger = getLogger(__name__)
 
 class RoryCommiter(ICommiter):
     def __init__(self):
-        pass
+        self.parser = ConfigParser()
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
+        if not self.parser.has_section('Rory'):
+            logger.error("no section: Rory")
+            print ("no section: Rory")
+        elif not self.parser.has_option('Rory', 'RORY_URL'):
+            logger.error("no option: RORY_URL in section: Rory")
+        else:
+            self.url = self.parser.get('Rory', 'RORY_URL')
 
     def commit(self, bare_metal, request):
 
@@ -59,15 +70,15 @@ class RoryCommiter(ICommiter):
                 mac = Utils.locate_mac_in_log(locate_macs=macs)
                 if not mac:
                     mac = macs[0]
-        url = "http://google.com"
+
         data = {"profile": profile, "mac": mac}
         if not ip:
             data["hostname"] = hostname
         else:
             data["ip"] = str(ip)
         data = dumps(data)
-        rest_put(url=url, data=data)
-        return url, data
+        rest_put(url=self.url, data=data)
+        return self.url, data
 
 
 class RoryError(Exception):
