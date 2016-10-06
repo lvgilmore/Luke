@@ -12,8 +12,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
+import os
 import uuid
 from logging import getLogger
+
+from flask import Flask
+from flask import make_response
 
 from Luke.Request import Request
 from Luke.RequestList import RequestList
@@ -24,18 +29,32 @@ REQUIREMENTS = 'requirements'
 OTHER_PROP = 'other_prop'
 
 logger = getLogger(__name__)
+logging.basicConfig(filename='LukeLogs.log',
+                    format='[%(asctime)s] [%(levelname)s] %(module)s - %(funcName)s:   %(message)s',
+                    level=logging.DEBUG,
+                    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
 class Api(object):
     def __init__(self):
-        # if os.environ['LUKE_PATH'] == "":
-        #     os.environ['LUKE_PATH'] = os.path.dirname(__file__)
-
-        # SHOULD RUN ONLY ONCE
+        # set LUKE_PATH
+        if 'LUKE_PATH' not in os.environ:
+            os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
+        # prepare pending requests file
         JsonUtils.init_file()
-        pass
+
+        # set up flask server
+        self.web_server = Flask(__name__)
+        self.init_routes()
+
+    def init_routes(self):
+        # self.web_server.error_handlers[None][404] = self.not_found
+        self.web_server.add_url_rule(rule='/', endpoint='index', view_func=Api.index, methods=['GET'])
+        self.web_server.add_url_rule(rule='/request', endpoint='requests', view_func=Api.handle_new_request,
+                                     methods=['PUT', 'POST'])
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
+        logger.info("start handling new request")
         json_req = json.loads(req)
         if self.check_if_req_valid(json_req):
             RequestList.handle_new_request(Request(json_req, req_id))
@@ -80,9 +99,17 @@ class Api(object):
                 print(i, best_match_request.requirements[i])
         else:
             print("no best match found")
+            logger.info("no best match found")
 
         return best_match_request
 
+    @staticmethod
+    def not_found(*args):
+        return make_response(json.dumps({'error': 'Not found'}), 404)
+
+    @staticmethod
+    def index():
+        return json.dumps([{'index': 'main'}, {'supported methods': 'GET'}, {'apidoc': '/apidoc'}])
 
 if __name__ == "__main__":
     pass

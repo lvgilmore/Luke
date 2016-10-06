@@ -12,6 +12,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import json
 import os
 from ConfigParser import ConfigParser
 from unittest import TestCase
@@ -29,26 +30,21 @@ option domain-name-servers 192.168.1.1, 192.168.1.2;
 option domain-search "example.com";
 max-lease-time 7200;
 subnet 192.168.2.0 netmask 255.255.255.0{
-    range 192.168.2.10, 192.168.2.100;
-    option routers 192.168.2.254;
-}
-subnet 192.168.3.0 netmask 255.255.255.0{
-    range 192.168.2.10, 192.168.2.100;
+    range 192.168.2.10, 192.168.2.100 ;
     option routers 192.168.2.254;
 }
 subnet 192.168.1.0 netmask 255.255.255.0{
-    range 192.168.2.10, 192.168.2.100;
+    range 192.168.2.10, 192.168.2.100 ;
     option routers 192.168.2.254;
 }
 subnet 192.168.0.0 netmask 255.255.255.0{
-    range 192.168.2.10, 192.168.2.100;
+    range 192.168.2.10, 192.168.2.100 ;
     option routers 192.168.2.254;
 }
 """
 
 
 class TestDHCPCommiter(TestCase):
-
     def setUp(self):
         self.parser = ConfigParser()
         if 'LUKE_PATH' not in os.environ or os.environ['LUKE_PATH' == ""]:
@@ -63,12 +59,13 @@ class TestDHCPCommiter(TestCase):
         pass
 
     def test_commit(self):
-        req = Request(
-            """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
+        req = """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
             "Speed": "2201.000", "Cores": "1"},
              "Vendor": "vend"},
             "other_prop": {"profile": "shit"},
-            "os": "Rory"} """)
+            "os": "Rory"} """
+
+        json_req = json.loads(req)
 
         bare_metal = BareMetal(
             """{"Vendor": "vend", "Cpu": {"Sockets": "1", "Arch": "x86_64",
@@ -80,7 +77,7 @@ class TestDHCPCommiter(TestCase):
              "sr0": {"Vendor": "VMware", "Size": "5"}},
              "Model": "mod", "ip": "192.168.0.1"}""")
 
-        self.commiter.commit(bare_metal=bare_metal, request=req)
+        self.commiter.commit(bare_metal=bare_metal, request=Request(json_req))
 
         self.assertEqual(DHCPConfParser.load(self.dhcp_cong_file),
                          DHCPConfParser.load(os.path.join(os.environ['LUKE_PATH'],

@@ -26,10 +26,6 @@ SECTIONS_WITH_SUBSECTIONS = {'NICs', 'Disks'}
 class MatchMaker(object):
     def __init__(self):
         self.parser = ConfigParser()
-
-        # read scores from file
-        # self.parser.read(os.path.relpath('resources/scores.conf',
-        #                                  os.path.join(os.path.dirname(__file__))))
         self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/scores.conf"))
         self.best_match_req = {'request': None, 'score': 0}
 
@@ -92,6 +88,7 @@ class MatchMaker(object):
         :param d2:
         :return:
         """
+        logger.info("start calc score")
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
@@ -150,7 +147,7 @@ class MatchMaker(object):
 
         return matched_req_by_requirements
 
-    def get_score(self, section, key):
+    def get_score_value(self, section, key):
         """Get score of given key (option) in section from scores file
 
         :param section:

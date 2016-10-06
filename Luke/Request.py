@@ -14,19 +14,18 @@
 import datetime
 from logging import getLogger
 
-# move to config file
-REQUIREMENTS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+from Luke.common import constants
 
 logger = getLogger(__name__)
 
 
 class Request(object):
-    def __init__(self, json_req, req_id):
-        self.requirements = json_req[REQUIREMENTS] if REQUIREMENTS in json_req else {}
-        self.other_prop = json_req[OTHER_PROP] if OTHER_PROP in json_req else {}
-        self.os = json_req[OS] if OS in json_req else DEFAULT_OS
+    def __init__(self, json_req, req_id=None):
+        self.requirements = json_req[constants.REQS] or {}
+        self.other_prop = json_req[constants.OTHER_PROP] or {}
+        if constants.OS in json_req:
+            self.os = json_req[constants.OS]
+        else:
+            self.os = constants.DEFAULT_OS
         self.creation_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
         self.id = req_id
