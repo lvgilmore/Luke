@@ -1,4 +1,5 @@
 #! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -12,21 +13,51 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
-from json import loads
+from ConfigParser import ConfigParser
 from unittest import TestCase
 from unittest import main
 
 from Luke.BareMetal import BareMetal
-from Luke.OSCommiters.RoryCommiter import RoryCommiter
+from Luke.DHCPCommiter import DHCPCommiter
 from Luke.Request import Request
+from Luke.utils import DHCPConfParser
+
+SECTION = 'SECTION'
+example = """option subnet-mask 255.255.255.0;
+default-lease-time 600;
+option domain-name-servers 192.168.1.1, 192.168.1.2;
+option domain-search "example.com";
+max-lease-time 7200;
+subnet 192.168.2.0 netmask 255.255.255.0{
+    range 192.168.2.10, 192.168.2.100;
+    option routers 192.168.2.254;
+}
+subnet 192.168.3.0 netmask 255.255.255.0{
+    range 192.168.2.10, 192.168.2.100;
+    option routers 192.168.2.254;
+}
+subnet 192.168.1.0 netmask 255.255.255.0{
+    range 192.168.2.10, 192.168.2.100;
+    option routers 192.168.2.254;
+}
+subnet 192.168.0.0 netmask 255.255.255.0{
+    range 192.168.2.10, 192.168.2.100;
+    option routers 192.168.2.254;
+}
+"""
 
 
-class TestRoryCommiter(TestCase):
+class TestDHCPCommiter(TestCase):
 
     def setUp(self):
-        if 'LUKE_PATH' not in os.environ:
+        self.parser = ConfigParser()
+        if 'LUKE_PATH' not in os.environ or os.environ['LUKE_PATH' == ""]:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
-        self.roryc = RoryCommiter()
+        self.dhcp_cong_file = os.path.join(os.environ['LUKE_PATH'], "tests/helpers/dhcp-example.conf")
+        self.commiter = DHCPCommiter(self.dhcp_cong_file)
+        with open(self.dhcp_cong_file, 'w') as f:
+            f.write(example)
+            f.close()
 
     def tearDown(self):
         pass
@@ -49,12 +80,11 @@ class TestRoryCommiter(TestCase):
              "sr0": {"Vendor": "VMware", "Size": "5"}},
              "Model": "mod", "ip": "192.168.0.1"}""")
 
-        url, data = self.roryc.commit(bare_metal, req)
-        data = loads(data)
-        self.assertEqual(url, "http://google.com")
-        self.assertEqual(data, {"profile": "shit",
-                                "mac": "00:0c:29:3d:5e:ce",
-                                "ip": "192.168.0.1"})
+        self.commiter.commit(bare_metal=bare_metal, request=req)
+
+        self.assertEqual(DHCPConfParser.load(self.dhcp_cong_file),
+                         DHCPConfParser.load(os.path.join(os.environ['LUKE_PATH'],
+                                                          "tests/helpers/dhcp-expected.conf")))
 
 
 if __name__ == '__main__':
