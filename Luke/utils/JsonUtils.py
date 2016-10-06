@@ -37,8 +37,13 @@ def append_json_to_file(json_entry):
 
 def init_file():
     # init file with an empty list
-    with io.open(REQUESTS_FILE_NAME, mode='w', encoding="utf-8") as f:
-        f.write(unicode(json.dumps([], ensure_ascii=False)))
+    try:
+        with io.open(REQUESTS_FILE_NAME, mode='r') as f:
+            f.close()
+    except IOError:
+        with io.open(REQUESTS_FILE_NAME, mode='w', encoding="utf-8") as f:
+            f.write(unicode(json.dumps([], ensure_ascii=False)))
+            f.close()
 
 
 def read_json_from_file():
