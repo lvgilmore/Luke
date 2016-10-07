@@ -14,11 +14,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
-from requests import get
+from requests import put
 from time import sleep
 
+from LukeClient.Cpu import Cpu
+from LukeClient.Disks import Disks
+from LukeClient.Nics import Nics
+from LukeClient.Ram import Ram
+from LukeClient.Server import Server
+from LukeClient.utils.Utils import convert_to_json
+
 os.system("dhclient eth0")
-get("http://google.com/")
+server = Server(cpu=Cpu(), ram=Ram(), nics=Nics(), disks=Disks())
+serverObject = {'Vendor': server.vendor,
+                'Model': server.model,
+                'Cpu': server.serverCpu.cpuObject,
+                'Ram': server.serverRam.ramObject,
+                'NICs': server.serverNics.nicsObject,
+                'Disks': server.serverDisks.disksObject}
+
+report = convert_to_json(serverObject)
+put("http://google.com/", report)
 while True:
     print("I just did something amazing")
     sleep(60)
