@@ -19,6 +19,7 @@ from logging import getLogger
 
 from flask import Flask
 from flask import make_response
+from flask import request
 
 from Luke.Request import Request
 from Luke.RequestList import RequestList
@@ -54,7 +55,10 @@ class Api(object):
                                      methods=['PUT', 'POST'])
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-        logger.info("start handling new request")
+
+        req = request.data
+
+        logger.info("start handling new request id: " + req_id)
         json_req = json.loads(req)
         if self.check_if_req_valid(json_req):
             RequestList.handle_new_request(Request(json_req, req_id))
@@ -63,7 +67,6 @@ class Api(object):
     def check_if_req_valid(req):
         if REQUIREMENTS not in req or OTHER_PROP not in req:
             logger.error("request is not in valid format")
-            print("request is not in valid format")
             return False
         return True
 
@@ -76,6 +79,7 @@ class Api(object):
             bare_metal.bare_metal)
 
         # read all requests from a file
+        logger.debug("getting all request from file")
         req_list = JsonUtils.read_json_from_file()
 
         # find all requests that matches the requirements
