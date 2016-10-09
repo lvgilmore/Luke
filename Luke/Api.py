@@ -21,10 +21,10 @@ from flask import Flask
 from flask import make_response
 from flask import request
 
-from Luke.Request import Request
-from Luke.RequestList import RequestList
-from Luke.matchMaker.MatchMaker import MatchMaker
-from Luke.utils import JsonUtils
+from Request import Request
+from RequestList import RequestList
+from matchMaker.MatchMaker import MatchMaker
+from utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
 OTHER_PROP = 'other_prop'

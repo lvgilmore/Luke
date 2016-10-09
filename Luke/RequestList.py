@@ -14,8 +14,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from logging import getLogger
 
-from Luke.common import constants
-from Luke.utils import JsonUtils
+from common import constants
+from utils import JsonUtils
 
 CREATION_TIME = 'creation_time'
 REQ_ID = 'id'
