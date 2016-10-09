@@ -15,11 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from views import addReq
+
+from views import add_req
 from views import index
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', index, name='index'),
-    url(r'^/request', addReq, name='addReq'),
+    url(r'^request', add_req, name='addReq'),
 ]

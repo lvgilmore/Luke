@@ -17,10 +17,6 @@ import os
 import uuid
 from logging import getLogger
 
-from flask import Flask
-from flask import make_response
-from flask import request
-
 from Request import Request
 from RequestList import RequestList
 from matchMaker.MatchMaker import MatchMaker
@@ -55,9 +51,6 @@ class Api(object):
                                      methods=['PUT', 'POST'])
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-
-        req = request.data
-
         logger.info("start handling new request id: " + req_id)
         json_req = json.loads(req)
         if self.check_if_req_valid(json_req):
