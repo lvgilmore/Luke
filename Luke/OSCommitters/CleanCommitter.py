@@ -12,9 +12,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
-import re
 
-from .OSCommitter import OSCommitter
+from Luke.OSCommitters.DHCPCommitter import OSCommitter
 
 
 class CleanCommitter(OSCommitter):
@@ -22,13 +21,14 @@ class CleanCommitter(OSCommitter):
         OSCommitter.__init__(self)
 
     def commit(self, bare_metal, request):
-        filestr = get_filename
-        protocol = re.sub('^([a-z]*)://.*$', '\1', filestr)
-        host = re.sub('^[a-z]*://([^/]*)/.*$', '\1', filestr)
-        path = re.sub('^[a-z]*://[^/]*/(.*)$', '\1', filestr)
+        filestr = get_filename()
+        filearr = filestr.split('/')
+        protocol = filearr[0][:-1]
+        host = filearr[2]
+        path = '/'.join(filearr[3:])
         if protocol == "ssh":
             os.system("ssh {} 'dd if={}' | dd of=/dev/sda".format(host, path))
 
 
 def get_filename():
-    return "ssh://host/path"
+    return "ssh://host/long/path"
