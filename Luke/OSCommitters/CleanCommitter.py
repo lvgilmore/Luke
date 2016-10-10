@@ -1,3 +1,4 @@
+#! /usr/bin/python2.7
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -10,18 +11,24 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from OSCommitters.CleanCommitter import CleanCommitter
-from OSCommitters.RoryCommitter import RoryCommitter
+import os
+import re
 
-COMMITTERS = {
-    "Linux": {
-        "handler": RoryCommitter,
-    },
-    "Xen": {
-        "handler": CleanCommitter,
-    },
-}
-REQS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+from .OSCommitter import OSCommitter
+
+
+class CleanCommitter(OSCommitter):
+    def __init__(self):
+        OSCommitter.__init__(self)
+
+    def commit(self, bare_metal, request):
+        filestr = get_filename
+        protocol = re.sub('^([a-z]*)://.*$', '\1', filestr)
+        host = re.sub('^[a-z]*://([^/]*)/.*$', '\1', filestr)
+        path = re.sub('^[a-z]*://[^/]*/(.*)$', '\1', filestr)
+        if protocol == "ssh":
+            os.system("ssh {} 'dd if={}' | dd of=/dev/sda".format(host, path))
+
+
+def get_filename():
+    return "ssh://host/path"

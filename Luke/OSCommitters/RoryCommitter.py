@@ -12,25 +12,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
-from ConfigParser import ConfigParser
 from ipaddr import AddressValueError
-from ipaddr import IPv4Address
 from logging import getLogger
 from json import dumps
 from requests import put as rest_put
 
-from Luke.OSCommiters.ICommiter import ICommiter
-from Luke.utils.Utils import Utils
+from .OSCommitter import OSCommitter
 
 logger = getLogger(__name__)
 
 
-class RoryCommiter(ICommiter):
+class RoryCommitter(OSCommitter):
     def __init__(self):
-        self.parser = ConfigParser()
-        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
+        OSCommitter.__init__(self)
         if not self.parser.has_section('Rory'):
             logger.error("no section: Rory")
             print ("no section: Rory")
@@ -47,31 +41,11 @@ class RoryCommiter(ICommiter):
         else:
             hostname = bare_metal.hostname
         try:
-            ip = IPv4Address(hostname)
-        except (AddressValueError, ValueError):
+            ip = bare_metal.ip
+        except (AddressValueError, ValueError, AttributeError):
             ip = None
 
-        # try to guess the mac to use
-        if "Mac" in bare_metal.__dict__:
-            mac = bare_metal.Mac
-        else:
-            # get all available macs
-            macs = []
-            for nic in bare_metal.NICs.iteritems():
-                if nic[0] != "lo":
-                    macs.append(nic[1]["Mac"])
-
-            if len(macs) == 1:
-                mac = macs[0]
-            elif len(macs) == 0:
-                logger.error("cannot Rory install - couldn't determine mac")
-                raise RoryError("couldn't determine mac")
-            else:
-                mac = Utils.locate_mac_in_log(locate_macs=macs)
-                if not mac:
-                    mac = macs[0]
-
-        data = {"profile": profile, "mac": mac}
+        data = {"profile": profile, "mac": bare_metal.mac}
         if not ip:
             data["hostname"] = hostname
         else:
