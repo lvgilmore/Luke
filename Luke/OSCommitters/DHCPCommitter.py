@@ -29,18 +29,18 @@ from socket import herror
 from ipaddr import IPv4Address
 from ipaddr import IPv4Network
 
-from BareMetal import BareMetal
-from OSCommiters.ICommiter import ICommiter
-from Request import Request
-from utils.DHCPConfParser import load as dhcp_load
-from utils.DHCPConfParser import save as dhcp_save
-from utils.Utils import Utils
+from Luke.BareMetal import BareMetal
+from Luke.OSCommitters.OSCommitter import OSCommitter
+from Luke.Request import Request
+from Luke.utils.DHCPConfParser import load as dhcp_load
+from Luke.utils.DHCPConfParser import save as dhcp_save
+from Luke.utils.Utils import ip_to_subnet, open_read_close
 
 logger = getLogger(__name__)
 SECTION = 'SECTION'
 
 
-class DHCPCommiter(ICommiter):
+class DHCPCommitter(OSCommitter):
     def __init__(self, dhcp_file=None):
         self.parser = ConfigParser()
         if os.environ['LUKE_PATH'] == "":
@@ -52,13 +52,13 @@ class DHCPCommiter(ICommiter):
             self.dhcp_config_file = dhcp_file
 
     def commit(self, bare_metal, request):
-        bare_metal = DHCPCommiter._build_host(bare_metal)
+        bare_metal = DHCPCommitter._build_host(bare_metal)
         request = self._build_os(request)
         if self._lock_dhcp():
             dhcp_conf = DHCPConfs(dhcp_load(self.dhcp_config_file))
             dhcp_conf.add_host(subnet=bare_metal["subnet"],
-                               host=DHCPCommiter._build_dhcp_host(bare_metal,
-                                                                  request))
+                               host=DHCPCommitter._build_dhcp_host(bare_metal,
+                                                                   request))
             dhcp_save(configurations=dhcp_conf,
                       conf_file=self.dhcp_config_file)
         else:
@@ -98,7 +98,7 @@ class DHCPCommiter(ICommiter):
             return False
         if "subnet" not in host:
             if "ip" in host:
-                host["subnet"] = Utils.ip_to_subnet(host["ip"])
+                host["subnet"] = ip_to_subnet(host["ip"])
             else:
                 logger.debug(
                     "DHCPCommiter.commit was called without IP nor segment")
@@ -164,7 +164,7 @@ class DHCPCommiter(ICommiter):
         return False
 
     def _check_deadlock(self, locker, lock_file):
-        current = Utils.open_read_close(lock_file)
+        current = open_read_close(lock_file)
         if current == locker["pid"]:
             locker["count"] += 1
         else:
@@ -185,7 +185,7 @@ class DHCPCommiter(ICommiter):
         return locker
 
     def _check_lock(self, lock_file, current):
-        temp = Utils.open_read_close(lock_file)
+        temp = open_read_close(lock_file)
         if int(temp) == int(current):
             return True
         else:
@@ -285,7 +285,7 @@ class LockError(Exception):
     pass
 
 if __name__ == "__main__":
-    dhc = DHCPCommiter("../resources/dhcp-example.conf")
+    dhc = DHCPCommitter("../resources/dhcp-example.conf")
     dhc.commit(bare_metal={"subnet": IPv4Network("192.168.0.1/24"),
                            "ip": IPv4Address("192.168.0.3"),
                            "NICs": {"eth0": {"Mac": "00:11:22:33:44:66",

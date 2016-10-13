@@ -12,16 +12,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Interface for specific OS commiters
-@author: Geiger
-@created: 11/09/2016
-"""
+import os
+
+from ConfigParser import ConfigParser
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
-class ICommiter(object):
+class OSCommitter(object):
     def __init__(self):
-        pass
+        self.parser = ConfigParser()
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
 
     def commit(self, bare_metal, request):
         """commits decision
@@ -31,9 +33,7 @@ class ICommiter(object):
          :param os: OS
         :return: null
         """
-        raise MethodNotImplementedError("you must implement commit")
+        # guess hostname
 
-
-class MethodNotImplementedError(NotImplementedError):
-    def __init__(self, *args):
-        NotImplementedError(*args)
+        # guess ip
+        # guess mac

@@ -21,7 +21,7 @@ from re import sub
 
 from ipaddr import IPv4Network
 
-from Utils import Utils
+from Luke.utils.Utils import open_read_close
 
 
 def load(conffile):
@@ -31,7 +31,7 @@ def load(conffile):
                   "groups": {},
                   "globals": {},
                   }
-    confs = Utils.open_read_close(conffile)
+    confs = open_read_close(conffile)
     confs = _preformat(confs)
     while confs.__len__() > 0:
         conf = confs[0]

@@ -18,7 +18,7 @@ from unittest import TestCase
 from unittest import main
 
 from Luke.BareMetal import BareMetal
-from Luke.OSCommiters.RoryCommiter import RoryCommiter
+from Luke.OSCommitters.RoryCommitter import RoryCommitter
 from Luke.Request import Request
 
 
@@ -27,7 +27,7 @@ class TestRoryCommiter(TestCase):
     def setUp(self):
         if 'LUKE_PATH' not in os.environ:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
-        self.roryc = RoryCommiter()
+        self.roryc = RoryCommitter()
 
     def tearDown(self):
         pass
