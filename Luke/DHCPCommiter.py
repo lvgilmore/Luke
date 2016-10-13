@@ -29,12 +29,12 @@ from socket import herror
 from ipaddr import IPv4Address
 from ipaddr import IPv4Network
 
-from Luke.BareMetal import BareMetal
-from Luke.OSCommiters.ICommiter import ICommiter
-from Luke.Request import Request
-from Luke.utils.DHCPConfParser import load as dhcp_load
-from Luke.utils.DHCPConfParser import save as dhcp_save
-from Luke.utils.Utils import Utils
+from BareMetal import BareMetal
+from OSCommiters.ICommiter import ICommiter
+from Request import Request
+from utils.DHCPConfParser import load as dhcp_load
+from utils.DHCPConfParser import save as dhcp_save
+from utils.Utils import Utils
 
 logger = getLogger(__name__)
 SECTION = 'SECTION'

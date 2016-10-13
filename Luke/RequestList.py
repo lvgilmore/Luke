@@ -14,13 +14,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from logging import getLogger
 
-from Luke.common import constants
-from Luke.utils import JsonUtils
+from common import constants
+from utils import JsonUtils
 
 CREATION_TIME = 'creation_time'
 REQ_ID = 'id'
 
 logger = getLogger(__name__)
+
 
 class RequestList(object):
 
@@ -29,8 +30,6 @@ class RequestList(object):
 
     @staticmethod
     def handle_new_request(request):
-
-        logger.info("start handling new request")
         json_req = dict()
 
         json_req[CREATION_TIME] = request.creation_time
@@ -40,5 +39,6 @@ class RequestList(object):
         json_req[REQ_ID] = request.id
 
         # add a request to a file with all open requests
+        logger.debug("appending new request with id: " + json_req[REQ_ID] + " to file")
         JsonUtils.append_json_to_file(json_req)
 

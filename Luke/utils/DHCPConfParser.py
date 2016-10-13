@@ -21,7 +21,7 @@ from re import sub
 
 from ipaddr import IPv4Network
 
-from Luke.utils.Utils import Utils
+from Utils import Utils
 
 
 def load(conffile):
