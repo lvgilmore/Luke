@@ -15,8 +15,8 @@ import io
 import json
 from logging import getLogger
 
-from Request import Request
-from common import constants
+from Luke.Request import Request
+from Luke.common import constants
 
 REQUESTS_FILE_NAME = "Requests.json"
 

@@ -1,2 +1,4 @@
 hacking
 testtools
+nose
+coverage

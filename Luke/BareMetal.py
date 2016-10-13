@@ -34,6 +34,7 @@ class BareMetal(object):
 
     def _init_ip(self, json_bare):
         # guess ip
+        self.ip = None
         if 'ip' in json_bare:
             self.ip = json_bare['ip']
         elif 'NICs' in json_bare:
@@ -41,21 +42,23 @@ class BareMetal(object):
             for nic in json_bare['NICs'].itervalues():
                 if 'ip' in nic:
                     ips.append(nic['ip'])
-            if ips.index('127.0.0.1'):
+            if '127.0.0.1' in ips:
                 ips.pop(ips.index('127.0.0.1'))
-            self.ip = ips[0]
-        else:
+            if len(ips):
+                self.ip = ips[0]
+
+        if not self.ip:
             logger.error("couldn't determine ip for BareMetal {}".format(str(self)))
-            self.ip = None
+
         return self.ip
 
     def _init_mac(self, json_bare):
         # guess mac
         self.mac = None
+        macs = []
         if 'Mac' in json_bare:
             self.mac = json_bare['mac']
         elif 'NICs' in json_bare:
-            macs = []
             for nic in json_bare['NICs'].itervalues():
                 macs.append(nic['Mac'])
                 if 'ip' in nic and nic['ip'] == self.ip:

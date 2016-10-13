@@ -17,10 +17,10 @@ import os
 import uuid
 from logging import getLogger
 
-from Request import Request
-from RequestList import RequestList
-from matchMaker.MatchMaker import MatchMaker
-from utils import JsonUtils
+from .Request import Request
+from .RequestList import RequestList
+from .matchMaker.MatchMaker import MatchMaker
+from .utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
 OTHER_PROP = 'other_prop'
@@ -39,16 +39,6 @@ class Api(object):
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
         # prepare pending requests file
         JsonUtils.init_file()
-
-        # set up flask server
-        self.web_server = Flask(__name__)
-        self.init_routes()
-
-    def init_routes(self):
-        # self.web_server.error_handlers[None][404] = self.not_found
-        self.web_server.add_url_rule(rule='/', endpoint='index', view_func=Api.index, methods=['GET'])
-        self.web_server.add_url_rule(rule='/request', endpoint='requests', view_func=Api.handle_new_request,
-                                     methods=['PUT', 'POST'])
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
         logger.info("start handling new request id: " + req_id)
