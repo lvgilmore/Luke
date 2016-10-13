@@ -78,7 +78,7 @@ class DHCPCommitter(OSCommitter):
             pass
         elif isinstance(host, str):
             host = BareMetal(host).__dict__
-        elif isinstance(host, BareMetal):
+        else:
             host = host.__dict__
 
         if "hostname" in host:
@@ -116,7 +116,7 @@ class DHCPCommitter(OSCommitter):
             pass
         elif isinstance(request, str):
             request = Request(request).__dict__
-        elif isinstance(request, Request):
+        else:
             request = request.__dict__
 
         if "next server" not in request:

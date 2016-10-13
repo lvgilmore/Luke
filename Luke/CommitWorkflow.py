@@ -22,7 +22,7 @@ from json import dumps
 from logging import getLogger
 
 from .BareMetal import BareMetal
-from .common.constants import COMMITTERS
+from .OSCommitters.committers import COMMITTERS
 from .OSCommitters.DHCPCommitter import DHCPCommitter
 from .Request import Request
 

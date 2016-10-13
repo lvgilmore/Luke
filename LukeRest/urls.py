@@ -16,6 +16,12 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+import Luke
+
+print(dir(Luke))
+print(Luke.__path__)
+
+
 from Luke.views import add_req
 from Luke.views import index
 
