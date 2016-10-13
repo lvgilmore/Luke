@@ -62,7 +62,7 @@ class TestDHCPCommiter(TestCase):
         req = """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
             "Speed": "2201.000", "Cores": "1"},
              "Vendor": "vend"},
-            "other_prop": {"profile": "shit"},
+            "other_prop": {"profile": "shit", "section": "Rory"},
             "os": "Rory"} """
 
         json_req = json.loads(req)

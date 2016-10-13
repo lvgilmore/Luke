@@ -17,6 +17,7 @@ from .RoryCommitter import RoryCommitter
 COMMITTERS = {
     "Linux": {
         "handler": RoryCommitter,
+        "section": "Rory",
     },
     "Xen": {
         "handler": CleanCommitter,

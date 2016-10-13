@@ -31,7 +31,12 @@ def load(conffile):
                   "groups": {},
                   "globals": {},
                   }
-    confs = open_read_close(conffile)
+    try:
+        confs = open_read_close(conffile)
+    except IOError:
+        with open(conffile, 'w') as f:
+            f.close()
+        confs=""
     confs = _preformat(confs)
     while confs.__len__() > 0:
         conf = confs[0]

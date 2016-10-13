@@ -17,6 +17,7 @@ Basic workflow to commit the MatchMaker decision
 @author: Geiger
 @created: 11/09/2016
 """
+import os
 
 from json import dumps
 from logging import getLogger
@@ -37,6 +38,13 @@ def commit(bare_metal, request):
         os_committer = COMMITTERS[request.os]["handler"]()
     except (AttributeError, KeyError):
         logger.warning("could not reliably determine the os commiter")
+
+    if "section" in COMMITTERS[request.os]:
+        section = COMMITTERS[request.os]["section"]
+    else:
+        section = request.os
+    request.other_prop["section"] = section
+
     DHCPCommitter().commit(bare_metal, request)
 
     return os_committer.commit(bare_metal, request)

@@ -17,9 +17,11 @@ import os
 import uuid
 from logging import getLogger
 
+from Luke.BareMetal import BareMetal
+from .CommitWorkflow import commit
+from .matchMaker.MatchMaker import MatchMaker
 from .Request import Request
 from .RequestList import RequestList
-from .matchMaker.MatchMaker import MatchMaker
 from .utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
@@ -76,6 +78,9 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
+            commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),  # TODO: get ip from django
+                   request=best_match_request) # TODO: get req_id
+            """
             print(best_match_request.id)
             print(best_match_request.os)
             print("\nother prop:")
@@ -84,19 +89,13 @@ class Api(object):
             print("\nrequirements:")
             for i in best_match_request.requirements:
                 print(i, best_match_request.requirements[i])
+            """
         else:
-            print("no best match found")
+            #print("no best match found")
             logger.info("no best match found")
 
         return best_match_request
 
-    @staticmethod
-    def not_found(*args):
-        return make_response(json.dumps({'error': 'Not found'}), 404)
-
-    @staticmethod
-    def index():
-        return json.dumps([{'index': 'main'}, {'supported methods': 'GET'}, {'apidoc': '/apidoc'}])
 
 if __name__ == "__main__":
     pass

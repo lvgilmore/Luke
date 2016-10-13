@@ -37,7 +37,6 @@ from Luke.utils.DHCPConfParser import save as dhcp_save
 from Luke.utils.Utils import ip_to_subnet, open_read_close
 
 logger = getLogger(__name__)
-SECTION = 'SECTION'
 
 
 class DHCPCommitter(OSCommitter):
@@ -46,8 +45,9 @@ class DHCPCommitter(OSCommitter):
         if os.environ['LUKE_PATH'] == "":
             os.environ['LUKE_PATH'] = os.path.dirname(__file__)
         self.parser.read(os.path.join(os.environ['LUKE_PATH'], 'resources/config.conf'))
+        env = self.parser.get(section="default", option="environment")
         if dhcp_file is None:
-            self.dhcp_config_file = self.parser.get(SECTION, 'DHCP_CONF_FILE')
+            self.dhcp_config_file = self.parser.get(env, 'DHCP_CONF_FILE')
         else:
             self.dhcp_config_file = dhcp_file
 
@@ -119,10 +119,11 @@ class DHCPCommitter(OSCommitter):
         else:
             request = request.__dict__
 
+        section = request["other_prop"]["section"]
         if "next server" not in request:
-            request["next-server"] = self.parser.get(request['os'], 'NEXT_SERVER')
+            request["next-server"] = self.parser.get(section=section, option='NEXT_SERVER')
         if "filename" not in request:
-            request["filename"] = self.parser.get(request['os'], 'TFTP_FILENAME')
+            request["filename"] = self.parser.get(section=section, option='TFTP_FILENAME')
         return request
 
     @staticmethod
