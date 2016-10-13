@@ -1,0 +1,4 @@
+flask
+ipaddr
+requests
+configparser

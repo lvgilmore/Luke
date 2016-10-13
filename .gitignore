@@ -1,0 +1,6 @@
+*.pyc
+pbr*.egg/
+setuptools*.egg/
+/.*
+!/.gitignore
+!/.gitreview
