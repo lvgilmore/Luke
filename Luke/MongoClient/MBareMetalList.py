@@ -16,7 +16,7 @@
 from Luke.MongoClient.MList import MList
 
 
-class MRequestList(MList):
+class MBareMetalList(MList):
     def __init__(self):
         MList.__init__(self)
 

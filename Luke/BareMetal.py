@@ -21,12 +21,14 @@ logger = getLogger(__name__)
 
 
 class BareMetal(object):
-    def __init__(self, bare_metal_str, hostname=None, ip=None, mac=None):
+    def __init__(self, bare_metal_str, bm_id=None, hostname=None, ip=None, mac=None):
         # load everything from the string
         json_bare = loads(bare_metal_str)
         for key, value in json_bare.iteritems():
             self.__dict__[key] = value
 
+        if bm_id:
+            self.id = bm_id
         self.ip = ip if ip else self._init_ip(json_bare=json_bare)
         self.mac = mac if mac else self._init_mac(json_bare=json_bare)
         self.hostname = hostname if hostname else self._init_hostname(json_bare=json_bare)
