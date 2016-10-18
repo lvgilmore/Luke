@@ -23,7 +23,6 @@ logger = getLogger(__name__)
 class BareMetal(object):
     def __init__(self, bare_metal_str, hostname=None, ip=None, mac=None):
         # load everything from the string
-        self.bare_metal = bare_metal_str
         json_bare = loads(bare_metal_str)
         for key, value in json_bare.iteritems():
             self.__dict__[key] = value

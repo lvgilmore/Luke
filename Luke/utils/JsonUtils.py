@@ -24,7 +24,13 @@ logger = getLogger(__name__)
 
 
 def convert_from_json_to_obj(obj_to_convert):
-    return json.loads(obj_to_convert)
+    try:
+        return json.loads(obj_to_convert)
+    except TypeError:
+        try:
+            return json.loads(json.dumps(obj_to_convert))
+        except TypeError:
+            return json.loads(json.dumps(obj_to_convert.__dict__))
 
 
 def append_json_to_file(json_entry):

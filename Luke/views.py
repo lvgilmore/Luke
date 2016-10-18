@@ -35,10 +35,25 @@ def add_req(request):
     # r.text
 
     if request.method == "POST":
-        api.handle_new_request(request.POST.get("request"))
-        return HttpResponse("good post")
+        result = api.handle_new_request(request.POST.get("request"))
+        if result:
+            return HttpResponse(content=result, status=200)
+        else:
+            return HttpResponse(content="invalid request", status=500)
+
     elif request.method == "GET":
         return HttpResponse("good get")
+
+
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def add_bm(request):
+    api = get_api()
+    result = api.handle_new_bare_metal(request=request)
+    if result:
+        return HttpResponse(content=result, status=200)
+    else:
+        return HttpResponse(content="invalid request", status=500)
 
 
 def get_api():
