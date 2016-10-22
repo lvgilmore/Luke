@@ -11,9 +11,11 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import os
+from logging import getLogger
 
 from Luke.OSCommitters.DHCPCommitter import OSCommitter
+
+logger = getLogger(__name__)
 
 
 class CleanCommitter(OSCommitter):
@@ -21,14 +23,13 @@ class CleanCommitter(OSCommitter):
         OSCommitter.__init__(self)
 
     def commit(self, bare_metal, request):
-        filestr = get_filename()
-        filearr = filestr.split('/')
-        protocol = filearr[0][:-1]
-        host = filearr[2]
-        path = '/'.join(filearr[3:])
-        if protocol == "ssh":
-            os.system("ssh {} 'dd if={}' | dd of=/dev/sda".format(host, path))
-
-
-def get_filename():
-    return "ssh://host/long/path"
+        bare_metal.__dict__['status'] = "matched"
+        bare_metal.__dict__['action'] = "run"
+        if "image" in request.other_prop:
+            bare_metal.__dict__["image_url"] = request.other_prop["image"]["url"]
+        elif self.parser.has_section(request.os):
+            bare_metal.__dict__["image_url"] = self.parser.get(request.os, "url")
+        else:
+            logger.warn("could not resolve url from bm {}, request {}".format(bare_metal.id, request.id))
+            return False
+        return True

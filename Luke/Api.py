@@ -99,8 +99,8 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
-                   request=best_match_request)
+            bm, r = commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
+                           request=best_match_request)
         else:
             logger.info("no best match found")
 
