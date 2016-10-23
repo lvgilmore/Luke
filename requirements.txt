@@ -2,4 +2,3 @@ django
 ipaddr
 requests
 configparser
-django-mongodb-engine

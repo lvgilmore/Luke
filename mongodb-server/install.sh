@@ -16,7 +16,7 @@
 # install the program itself
 INSTALLCMD="yum"
 which dnf > /dev/null 2>&1 && INSTALLCMD="dnf"
-$INSTALLCMD install -y mongodb mongodb-server
+sudo $INSTALLCMD install -y mongodb mongodb-server
 
 cp mongod.conf /etc/
 

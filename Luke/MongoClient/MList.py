@@ -26,15 +26,15 @@ logger = getLogger(__name__)
 
 class MList(object):
     def __init__(self):
-        self.parser = ConfigParser(os.path.join(os.environ['LUKE_PATH'],
-                                               "resources/config.conf"))
+        self.parser = ConfigParser()
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
         connection_uri = self.parser.get('mongodb', 'connection')
         db_name = self.parser.get('mongodb', 'dbname')
         self.database = MongoClient(connection_uri)[db_name]
 
     def _insert_to_collection(self, obj, collection):
-        json_bm = convert_from_json_to_obj(obj)
-        if 'id' in json_bm:
-            json_bm['_id'] = json_bm.pop('id')
-        logger.debug("appending id: " + json_bm['id'] + " to collection" + collection)
-        return self.database[collection].insert_one(json_bm).inserted_id
+        json_obj = convert_from_json_to_obj(obj)
+        if 'id' in json_obj:
+            json_obj['_id'] = json_obj.pop('id')
+        logger.debug("appending id: " + json_obj['_id'] + " to collection" + collection)
+        return self.database[collection].insert_one(json_obj).inserted_id
