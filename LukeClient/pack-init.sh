@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cp luke-client.py luke-client.ser.service /tmp/
+cp luke-client.py luke-client.service /tmp/
 
 #get and unpack the image
 wget -o /tmp/initrd.img http://magic-address/images/pxeboot/initrd.img

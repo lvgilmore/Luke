@@ -20,19 +20,19 @@ class Disks(object):
     def __init__(self):
 
         self.allDisks = produce_command("lsblk | grep ^[a-z]  | awk '{print $1}'")
-        self.disksList = {}
         self.disksObject = {}
         self.get_all_disks()
-        self.init_disks_object()
 
     def get_all_disks(self):
+        disksList = {}
         for disk in self.allDisks.split():
-            self.disksList.update(
+            disksList.update(
                 {disk: Disk(produce_command("sudo fdisk -l | grep /dev/sda: |awk '{print $3$4}'"),
                             produce_command("cat /sys/block/sd?/device/vendor"))})
+        self.init_disks_object(disksList)
 
-    def init_disks_object(self):
-        for k, v in self.disksList.items():
+    def init_disks_object(self, disksList):
+        for k, v in disksList.items():
             self.disksObject.update({k: v.diskObject})
 
 

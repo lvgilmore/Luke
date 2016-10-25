@@ -20,20 +20,20 @@ class Nics(object):
     def __init__(self):
 
         self.allDevices = produce_command("ifconfig -a | sed 's/[ \t].*//;/^\(lo\|\)$/d'")
-        self.nicsList = {}
         self.nicsObject = {}
         self.get_all_nics_list()
-        self.init_nics_object()
 
     def get_all_nics_list(self):
+        nicsList = {}
         for device in self.allDevices.split():
-              self.nicsList.update({device: Nic(
+              nicsList.update({device: Nic(
                   produce_command("ethtool " + device + " | grep 'Port' | sed 's/^.*: //'"),
                   produce_command("ethtool " + device + " | grep 'Speed' | sed 's/^.*: //'"),
                   produce_command("ifconfig " + device + " | grep HWaddr | awk '{print $5}' | sed 's/^.*: //'"))})
+        self.init_nics_object(nicsList)
 
-    def init_nics_object(self):
-        for k, v in self.nicsList.items():
+    def init_nics_object(self, nicsList):
+        for k, v in nicsList.items():
             self.nicsObject.update({k: v.nicObject})
 
 class Nic:

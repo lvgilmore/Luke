@@ -18,7 +18,7 @@ from LukeClient.utils.Utils import produce_command
 class Ram(object):
 
     def __init__(self):
-        self.ramSize = Ram.init_ram_size()
+        self.ramSize = self.init_ram_size()
 
         self.ramObject = {'Size': self.ramSize}
 
