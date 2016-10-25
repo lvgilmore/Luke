@@ -36,12 +36,6 @@ class Disks(object):
             self.disksObject.update({k: v.diskObject})
 
 
-if __name__ == '__main__':
-    disks = Disks()
-    print str(disks.disksList)
-    print str(disks.disksObject)
-
-
 class Disk(object):
 
     def __init__(self, size, vendor):
