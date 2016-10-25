@@ -21,10 +21,11 @@ from logging import getLogger
 from traceback import extract_stack
 
 from Luke.BareMetal import BareMetal
+from Luke.MongoClient.MBareMetalList import MBareMetalList
+from Luke.MongoClient.MRequestList import MRequestList
 from .CommitWorkflow import commit
 from .matchMaker.MatchMaker import MatchMaker
 from .Request import Request
-from .RequestList import RequestList
 from .utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
@@ -38,19 +39,19 @@ logging.basicConfig(filename='LukeLogs.log',
 
 
 class Api(object):
-    def __init__(self):
+    def __init__(self, ):
         # set LUKE_PATH
         if 'LUKE_PATH' not in os.environ:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
-        # prepare pending requests file
-        JsonUtils.init_file()
+        self.bare_metal_list = MBareMetalList()
+        self.request_list = MRequestList()
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
         logger.info("start handling new request id: " + req_id)
-        json_req = json.loads(req)
+        json_req = JsonUtils.convert_from_json_to_obj(req)
         if self.check_if_req_valid(json_req):
             req = Request(json_req, req_id)
-            RequestList.handle_new_request(request=req)
+            self.request_list.handle_new_request(request=req)
             return req_id
         else:
             logger.error("request is not in valid format")
@@ -60,8 +61,7 @@ class Api(object):
     def check_if_req_valid(req):
         return REQUIREMENTS in req and OTHER_PROP in req
 
-    @staticmethod
-    def handle_new_bare_metal(bare_metal=None, request=None):
+    def handle_new_bare_metal(self, bare_metal=None, request=None):
         if request:
             ip = request.META["REMOTE_ADDR"]
             if request.META["REMOTE_HOST"] == ip:
@@ -75,6 +75,8 @@ class Api(object):
             logger.error("called without arguments")
             for line in extract_stack():
                 logger.debug(line)
+
+        bm_id = self.bare_metal_list.handle_new_bare_metal(bare_metal=bare_metal)
 
         best_match_request = None
         match_maker = MatchMaker()
