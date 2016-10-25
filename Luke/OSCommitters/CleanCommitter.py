@@ -23,6 +23,7 @@ class CleanCommitter(OSCommitter):
         OSCommitter.__init__(self)
 
     def commit(self, bare_metal, request):
+        ret_value = True
         bare_metal.__dict__['status'] = "matched"
         bare_metal.__dict__['action'] = "run"
         if "image" in request.other_prop:
@@ -31,5 +32,5 @@ class CleanCommitter(OSCommitter):
             bare_metal.__dict__["image_url"] = self.parser.get(request.os, "url")
         else:
             logger.warn("could not resolve url from bm {}, request {}".format(bare_metal.id, request.id))
-            return False
-        return True
+            ret_value = False
+        return ret_value

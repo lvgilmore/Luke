@@ -54,14 +54,12 @@ class Api(object):
             RequestList.handle_new_request(request=req)
             return req_id
         else:
+            logger.error("request is not in valid format")
             return False
 
     @staticmethod
     def check_if_req_valid(req):
-        if REQUIREMENTS not in req or OTHER_PROP not in req:
-            logger.error("request is not in valid format")
-            return False
-        return True
+        return REQUIREMENTS in req and OTHER_PROP in req
 
     @staticmethod
     def handle_new_bare_metal(bare_metal=None, request=None):
@@ -75,7 +73,7 @@ class Api(object):
                 bare_metal = BareMetal(bare_metal_str=request.POST.get("bare_metal"),
                                        ip=ip, hostname=hostname)
         elif not bare_metal and not request:
-            logger.error("Api.handle_new_bare_metal was called without arguments")
+            logger.error("called without arguments")
             for line in extract_stack():
                 logger.debug(line)
 

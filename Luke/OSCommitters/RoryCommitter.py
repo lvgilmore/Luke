@@ -27,7 +27,6 @@ class RoryCommitter(OSCommitter):
         OSCommitter.__init__(self)
         if not self.parser.has_section('Rory'):
             logger.error("no section: Rory")
-            print ("no section: Rory")
         elif not self.parser.has_option('Rory', 'RORY_URL'):
             logger.error("no option: RORY_URL in section: Rory")
         else:
