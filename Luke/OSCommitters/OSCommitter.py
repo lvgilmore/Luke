@@ -12,7 +12,28 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-REQS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+import os
+
+from ConfigParser import ConfigParser
+from logging import getLogger
+
+logger = getLogger(__name__)
+
+
+class OSCommitter(object):
+    def __init__(self):
+        self.parser = ConfigParser()
+        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
+
+    def commit(self, bare_metal, request):
+        """commits decision
+
+        :param kwargs: dict
+         :param host: Host
+         :param os: OS
+        :return: null
+        """
+        # guess hostname
+
+        # guess ip
+        # guess mac

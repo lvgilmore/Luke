@@ -13,16 +13,24 @@
 
 import io
 import json
+from logging import getLogger
 
 from Luke.Request import Request
 from Luke.common import constants
 
 REQUESTS_FILE_NAME = "Requests.json"
-SCORE_KEY = 'score'
+
+logger = getLogger(__name__)
 
 
 def convert_from_json_to_obj(obj_to_convert):
-    return json.loads(obj_to_convert)
+    try:
+        return json.loads(obj_to_convert)
+    except TypeError:
+        try:
+            return json.loads(json.dumps(obj_to_convert))
+        except TypeError:
+            return json.loads(json.dumps(obj_to_convert.__dict__))
 
 
 def append_json_to_file(json_entry):
@@ -39,9 +47,11 @@ def init_file():
         with io.open(REQUESTS_FILE_NAME, mode='r') as f:
             f.close()
     except IOError:
+        logger.debug("start initialize file: " + REQUESTS_FILE_NAME)
         with io.open(REQUESTS_FILE_NAME, mode='w', encoding="utf-8") as f:
             f.write(unicode(json.dumps([], ensure_ascii=False)))
             f.close()
+            logger.debug("initialize file: " + REQUESTS_FILE_NAME + " ended successfully")
 
 
 def read_json_from_file():

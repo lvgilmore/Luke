@@ -1,0 +1,5 @@
+default luke
+
+label luke
+    kernel luke/vmlinuz
+    append initrd=luke/luke.img biosdevname=0 net.ifnames=0

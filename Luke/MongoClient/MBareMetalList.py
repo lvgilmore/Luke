@@ -1,4 +1,5 @@
 #! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -12,7 +13,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-REQS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+from Luke.MongoClient.MList import MList
+
+
+class MBareMetalList(MList):
+    def __init__(self):
+        MList.__init__(self)
+
+    def handle_new_bare_metal(self, bare_metal):
+        return self._insert_to_collection(bare_metal, 'bare_metals')

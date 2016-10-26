@@ -1,4 +1,5 @@
 #! /usr/bin/python2.7
+
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -12,28 +13,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Interface for specific OS commiters
-@author: Geiger
-@created: 11/09/2016
-"""
+from Luke.MongoClient.MList import MList
 
 
-class ICommiter(object):
+class MRequestList(MList):
     def __init__(self):
-        pass
+        MList.__init__(self)
 
-    def commit(self, bare_metal, request):
-        """commits decision
-
-        :param kwargs: dict
-         :param host: Host
-         :param os: OS
-        :return: null
-        """
-        raise MethodNotImplementedError("you must implement commit")
-
-
-class MethodNotImplementedError(NotImplementedError):
-    def __init__(self, *args):
-        NotImplementedError(*args)
+    def handle_new_request(self, request):
+        return self._insert_to_collection(request, 'requests')
