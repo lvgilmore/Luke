@@ -18,7 +18,6 @@ import os
 import uuid
 
 from logging import getLogger
-from traceback import extract_stack
 
 from Luke.BareMetal import BareMetal
 from .CommitWorkflow import commit
@@ -61,20 +60,20 @@ class Api(object):
         return REQUIREMENTS in req and OTHER_PROP in req
 
     @staticmethod
-    def handle_new_bare_metal(bare_metal=None, request=None):
-        if request:
-            ip = request.META["REMOTE_ADDR"]
-            if request.META["REMOTE_HOST"] == ip:
-                hostname = request.META["REMOTE_HOST"]
+    def handle_new_bare_metal(bare_metal):
+        if isinstance(bare_metal, BareMetal):
+            pass
+        elif hasattr(bare_metal, 'META') and hasattr(bare_metal, 'POST'):
+            ip = bare_metal.META["REMOTE_ADDR"]
+            if bare_metal.META["REMOTE_HOST"] != ip:
+                hostname = bare_metal.META["REMOTE_HOST"]
             else:
                 hostname = None
             if not bare_metal:
-                bare_metal = BareMetal(bare_metal_str=request.POST.get("bare_metal"),
+                bare_metal = BareMetal(bare_metal_str=bare_metal.POST.get("bare_metal"),
                                        ip=ip, hostname=hostname)
-        elif not bare_metal and not request:
-            logger.error("called without arguments")
-            for line in extract_stack():
-                logger.debug(line)
+        else:
+            bare_metal = BareMetal(bare_metal)
 
         best_match_request = None
         match_maker = MatchMaker()

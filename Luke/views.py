@@ -28,9 +28,6 @@ def add_req(request):
         else:
             return HttpResponse(content="invalid request", status=500)
 
-    elif request.method == "GET":
-        return HttpResponse("good get")
-
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])

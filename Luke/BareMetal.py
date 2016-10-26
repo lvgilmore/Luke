@@ -33,6 +33,7 @@ class BareMetal(object):
 
     def _init_ip(self, json_bare):
         # guess ip
+        self.ip = None
         if 'ip' in json_bare:
             self.ip = json_bare['ip']
         elif 'NICs' in json_bare:
@@ -50,6 +51,7 @@ class BareMetal(object):
 
     def _init_mac(self, json_bare):
         # guess mac
+        self.mac = None
         macs = []
         if 'Mac' in json_bare:
             self.mac = json_bare['mac']
