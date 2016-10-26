@@ -47,7 +47,11 @@ def commit(bare_metal, request):
 
     DHCPCommitter().commit(bare_metal, request)
 
-    return os_committer.commit(bare_metal, request)
+    if os_committer.commit(bare_metal, request):
+        return bare_metal, request
+    else:
+        logger.error("something went wrong committing bm: {}, request {}".format(bare_metal.id, request.id))
+        return False
 
 
 def normalize(argument, desired_type):

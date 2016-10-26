@@ -40,11 +40,9 @@ def locate_mac_in_log(search_macs):
     log = popen("tail -500 {} | grep DHCPDISCOVER".format(
         DHCP_LOG_FILE)).read().split('\n')
     for line in log:
-        mac = sub(
-            r'^.*DHCPDISCOVER.*from '
-            r'(([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}).*',
-            r'\1',
-            line)
+        mac = sub(r'^.*DHCPDISCOVER.*from (([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}).*',
+                  r'\1',
+                  line)
         if mac in search_macs:
             macs.append(mac)
     if len(macs) == 0:

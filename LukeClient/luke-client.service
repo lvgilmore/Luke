@@ -1,0 +1,11 @@
+[Unit]
+Description=Luke Client
+Requires=network.target
+After=sysinit.target network.target
+
+[Service]
+PIDFile=/var/run/luke-client.pid
+ExecStart=/usr/bin/luke-client.py
+
+[Install]
+WantedBy=sysinit.target basic.target

@@ -1,5 +1,4 @@
 #! /usr/bin/python2.7
-
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +18,6 @@ import os
 import uuid
 
 from logging import getLogger
-from traceback import extract_stack
 
 from Luke.BareMetal import BareMetal
 from Luke.MongoClient.MBareMetalList import MBareMetalList
@@ -40,7 +38,7 @@ logging.basicConfig(filename='LukeLogs.log',
 
 
 class Api(object):
-    def __init__(self, ):
+    def __init__(self):
         # set LUKE_PATH
         if 'LUKE_PATH' not in os.environ:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
@@ -55,29 +53,26 @@ class Api(object):
             self.request_list.handle_new_request(request=req)
             return req_id
         else:
+            logger.error("request is not in valid format")
             return False
 
     @staticmethod
     def check_if_req_valid(req):
-        if REQUIREMENTS not in req or OTHER_PROP not in req:
-            logger.error("request is not in valid format")
-            return False
-        return True
+        return REQUIREMENTS in req and OTHER_PROP in req
 
-    def handle_new_bare_metal(self, bare_metal=None, request=None):
-        if request:
-            ip = request.META["REMOTE_ADDR"]
-            if request.META["REMOTE_HOST"] == ip:
-                hostname = request.META["REMOTE_HOST"]
+    def handle_new_bare_metal(self, bare_metal):
+        if isinstance(bare_metal, BareMetal):
+            pass
+        elif hasattr(bare_metal, 'META') and hasattr(bare_metal, 'POST'):
+            ip = bare_metal.META["REMOTE_ADDR"]
+            if bare_metal.META["REMOTE_HOST"] != ip:
+                hostname = bare_metal.META["REMOTE_HOST"]
             else:
                 hostname = None
-            if not bare_metal:
-                bare_metal = BareMetal(bare_metal_str=request.POST.get("bare_metal"),
-                                       ip=ip, hostname=hostname)
-        elif not bare_metal and not request:
-            logger.error("Api.handle_new_bare_metal was called without arguments")
-            for line in extract_stack():
-                logger.debug(line)
+            bare_metal = BareMetal(bare_metal_str=bare_metal.POST.get("bare_metal"),
+                                   ip=ip, hostname=hostname)
+        else:
+            bare_metal = BareMetal(bare_metal)
 
         bm_id = self.bare_metal_list.handle_new_bare_metal(bare_metal=bare_metal)
 
@@ -101,8 +96,8 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
-                   request=best_match_request)
+            bm, r = commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
+                           request=best_match_request)
         else:
             logger.info("no best match found")
 

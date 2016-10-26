@@ -41,10 +41,8 @@ class BareMetal(object):
         elif 'NICs' in json_bare:
             ips = []
             for nic in json_bare['NICs'].itervalues():
-                if 'ip' in nic:
+                if 'ip' in nic and nic['ip'] != '127.0.0.1':
                     ips.append(nic['ip'])
-            if '127.0.0.1' in ips:
-                ips.pop(ips.index('127.0.0.1'))
             if len(ips):
                 self.ip = ips[0]
 
@@ -61,9 +59,10 @@ class BareMetal(object):
             self.mac = json_bare['mac']
         elif 'NICs' in json_bare:
             for nic in json_bare['NICs'].itervalues():
-                macs.append(nic['Mac'])
-                if 'ip' in nic and nic['ip'] == self.ip:
-                    self.mac = nic['Mac']
+                if 'Mac' in nic:
+                    macs.append(nic['Mac'])
+                    if 'ip' in nic and nic['ip'] == self.ip:
+                        self.mac = nic['Mac']
         if not self.mac:
             if len(macs) == 1:
                 self.mac = macs[0]
