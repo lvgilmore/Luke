@@ -18,6 +18,7 @@ import os
 from ConfigParser import ConfigParser
 from logging import getLogger
 from pymongo import MongoClient
+from uuid import uuid4
 
 from Luke.utils.JsonUtils import convert_from_json_to_obj
 
@@ -36,5 +37,7 @@ class MList(object):
         json_obj = convert_from_json_to_obj(obj)
         if 'id' in json_obj:
             json_obj['_id'] = json_obj.pop('id')
+        else:
+            json_obj['_id'] = str(uuid4())
         logger.debug("appending id: " + json_obj['_id'] + " to collection" + collection)
         return self.database[collection].insert_one(json_obj).inserted_id
