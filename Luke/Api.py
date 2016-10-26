@@ -16,15 +16,15 @@ import json
 import logging
 import os
 import uuid
+
 from logging import getLogger
 
-from flask import Flask
-from flask import make_response
-
-from Luke.Request import Request
-from Luke.RequestList import RequestList
-from Luke.matchMaker.MatchMaker import MatchMaker
-from Luke.utils import JsonUtils
+from Luke.BareMetal import BareMetal
+from .CommitWorkflow import commit
+from .matchMaker.MatchMaker import MatchMaker
+from .Request import Request
+from .RequestList import RequestList
+from .utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
 OTHER_PROP = 'other_prop'
@@ -44,39 +44,44 @@ class Api(object):
         # prepare pending requests file
         JsonUtils.init_file()
 
-        # set up flask server
-        self.web_server = Flask(__name__)
-        self.init_routes()
-
-    def init_routes(self):
-        # self.web_server.error_handlers[None][404] = self.not_found
-        self.web_server.add_url_rule(rule='/', endpoint='index', view_func=Api.index, methods=['GET'])
-        self.web_server.add_url_rule(rule='/request', endpoint='requests', view_func=Api.handle_new_request,
-                                     methods=['PUT', 'POST'])
-
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-        logger.info("start handling new request")
+        logger.info("start handling new request id: " + req_id)
         json_req = json.loads(req)
         if self.check_if_req_valid(json_req):
-            RequestList.handle_new_request(Request(json_req, req_id))
+            req = Request(json_req, req_id)
+            RequestList.handle_new_request(request=req)
+            return req_id
+        else:
+            logger.error("request is not in valid format")
+            return False
 
     @staticmethod
     def check_if_req_valid(req):
-        if REQUIREMENTS not in req or OTHER_PROP not in req:
-            logger.error("request is not in valid format")
-            print("request is not in valid format")
-            return False
-        return True
+        return REQUIREMENTS in req and OTHER_PROP in req
 
     @staticmethod
     def handle_new_bare_metal(bare_metal):
+        if isinstance(bare_metal, BareMetal):
+            pass
+        elif hasattr(bare_metal, 'META') and hasattr(bare_metal, 'POST'):
+            ip = bare_metal.META["REMOTE_ADDR"]
+            if bare_metal.META["REMOTE_HOST"] != ip:
+                hostname = bare_metal.META["REMOTE_HOST"]
+            else:
+                hostname = None
+            if not bare_metal:
+                bare_metal = BareMetal(bare_metal_str=bare_metal.POST.get("bare_metal"),
+                                       ip=ip, hostname=hostname)
+        else:
+            bare_metal = BareMetal(bare_metal)
+
         best_match_request = None
         match_maker = MatchMaker()
 
-        json_bare_metal = JsonUtils.convert_from_json_to_obj(
-            bare_metal.bare_metal)
+        json_bare_metal = JsonUtils.convert_from_json_to_obj(bare_metal)
 
         # read all requests from a file
+        logger.debug("getting all request from file")
         req_list = JsonUtils.read_json_from_file()
 
         # find all requests that matches the requirements
@@ -90,27 +95,13 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            print(best_match_request.id)
-            print(best_match_request.os)
-            print("\nother prop:")
-            for i in best_match_request.other_prop:
-                print(i, best_match_request.other_prop[i])
-            print("\nrequirements:")
-            for i in best_match_request.requirements:
-                print(i, best_match_request.requirements[i])
+            bm, r = commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
+                           request=best_match_request)
         else:
-            print("no best match found")
             logger.info("no best match found")
 
         return best_match_request
 
-    @staticmethod
-    def not_found(*args):
-        return make_response(json.dumps({'error': 'Not found'}), 404)
-
-    @staticmethod
-    def index():
-        return json.dumps([{'index': 'main'}, {'supported methods': 'GET'}, {'apidoc': '/apidoc'}])
 
 if __name__ == "__main__":
     pass

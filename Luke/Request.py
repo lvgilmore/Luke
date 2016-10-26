@@ -14,7 +14,7 @@
 import datetime
 from logging import getLogger
 
-from Luke.common import constants
+from common import constants
 
 logger = getLogger(__name__)
 

@@ -19,7 +19,7 @@ from unittest import TestCase
 from unittest import main
 
 from Luke.BareMetal import BareMetal
-from Luke.DHCPCommiter import DHCPCommiter
+from Luke.OSCommitters.DHCPCommitter import DHCPCommitter
 from Luke.Request import Request
 from Luke.utils import DHCPConfParser
 
@@ -50,7 +50,7 @@ class TestDHCPCommiter(TestCase):
         if 'LUKE_PATH' not in os.environ or os.environ['LUKE_PATH' == ""]:
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
         self.dhcp_cong_file = os.path.join(os.environ['LUKE_PATH'], "tests/helpers/dhcp-example.conf")
-        self.commiter = DHCPCommiter(self.dhcp_cong_file)
+        self.commiter = DHCPCommitter(self.dhcp_cong_file)
         with open(self.dhcp_cong_file, 'w') as f:
             f.write(example)
             f.close()
@@ -62,7 +62,7 @@ class TestDHCPCommiter(TestCase):
         req = """{"requirements": {"Cpu": {"Sockets": "1", "Arch": "x86_64",
             "Speed": "2201.000", "Cores": "1"},
              "Vendor": "vend"},
-            "other_prop": {"profile": "shit"},
+            "other_prop": {"profile": "shit", "section": "Rory"},
             "os": "Rory"} """
 
         json_req = json.loads(req)

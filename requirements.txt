@@ -1,4 +1,4 @@
-flask
+django
 ipaddr
 requests
 configparser

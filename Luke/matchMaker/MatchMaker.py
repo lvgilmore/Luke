@@ -88,7 +88,7 @@ class MatchMaker(object):
         :param d2:
         :return:
         """
-        logger.info("start calc score")
+        logger.debug("start calculating score")
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
@@ -101,6 +101,8 @@ class MatchMaker(object):
                         score += self.get_score_value(section, key)
         elif d1 == d2:
             score = self.get_score_value(DEFAULT_SECTION, section)
+
+        logger.debug("calculated score is: " + str(score))
         return score
 
     def check_if_different(self, d1, d2):
@@ -141,10 +143,14 @@ class MatchMaker(object):
         """
         matched_req_by_requirements = []
 
+        logger.debug("start finding requests that match requirements")
         for req in req_list:
             if not self.check_if_different(req.requirements, bare_metal):
                 matched_req_by_requirements.append(req)
 
+        logger.debug(
+            "finding requests that match requirements ended with " +
+            str(len(matched_req_by_requirements)) + " matching requests")
         return matched_req_by_requirements
 
     def get_score_value(self, section, key):

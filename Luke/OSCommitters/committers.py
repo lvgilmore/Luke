@@ -11,8 +11,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from .CleanCommitter import CleanCommitter
+from .RoryCommitter import RoryCommitter
 
-REQS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+COMMITTERS = {
+    "Linux": {
+        "handler": RoryCommitter,
+        "section": "Rory",
+    },
+    "Xen": {
+        "handler": CleanCommitter,
+    },
+}
