@@ -137,15 +137,15 @@ class TestMatchMaker(unittest.TestCase):
               \"Type\": \"Twisted Pair\"}}," \
               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-              "\"Model\": \"mod\"}}"
+              "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
                      \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
                      " \"Ram\": {\"Size\": \"3062784\"}, " \
                      "\"NICs\": {\"ens33\": " \
-                     "{\"Speed\": \"1000Mb/s\", \
-                     \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
+                     "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                     \"Type\": \"Twisted Pair\", \"ip\": \"192.168.0.4\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
@@ -169,7 +169,7 @@ class TestMatchMaker(unittest.TestCase):
                \"Type\": \"Twisted Pair\"}}," \
                " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+               "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         req2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
                 \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
@@ -180,14 +180,14 @@ class TestMatchMaker(unittest.TestCase):
                \"Type\": \"Twisted Pair\"}}," \
                " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+               "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
                      \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
                      " \"Ram\": {\"Size\": \"3062784\"}, " \
                      "\"NICs\": {\"ens33\": " \
-                     "{\"Speed\": \"1000Mb/s\", \
+                     "{\"Speed\": \"1000Mb/s\", \"ip\": \"192.168.0.4\", \
                      \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
@@ -214,7 +214,7 @@ class TestMatchMaker(unittest.TestCase):
                \"Type\": \"Twisted Pair\"}}," \
                " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+               "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         req_id2 = str(uuid.uuid4())
         req2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
@@ -226,14 +226,14 @@ class TestMatchMaker(unittest.TestCase):
                \"Type\": \"Twisted Pair\"}}," \
                " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+               "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
                      \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
                      " \"Ram\": {\"Size\": \"3062784\"}, " \
                      "\"NICs\": {\"ens33\": " \
-                     "{\"Speed\": \"1000Mb/s\", \
+                     "{\"Speed\": \"1000Mb/s\", \"ip\": \"192.168.0.4\", \
                      \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
@@ -261,7 +261,7 @@ class TestMatchMaker(unittest.TestCase):
                \"Type\": \"Twisted Pair\"}}," \
                " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-               "\"Model\": \"mod\"}}"
+               "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         req_id = str(uuid.uuid4())
         req_match1 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
@@ -273,7 +273,7 @@ class TestMatchMaker(unittest.TestCase):
                      \"Type\": \"Twisted Pair\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-                     "\"Model\": \"mod\"}}"
+                     "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         req_match2 = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
                         \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
@@ -284,14 +284,14 @@ class TestMatchMaker(unittest.TestCase):
                      \"Type\": \"Twisted Pair\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-                     "\"Model\": \"mod\"}}"
+                     "\"Model\": \"mod\", \"profile\": \"common\"}}"
 
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
                      \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
                      " \"Ram\": {\"Size\": \"3062784\"}, " \
                      "\"NICs\": {\"ens33\": " \
-                     "{\"Speed\": \"1000Mb/s\", \
+                     "{\"Speed\": \"1000Mb/s\", \"ip\": \"192.168.0.4\", \
                      \"Mac\": \"00:0c:29:3d:5e:ce\", \"Type\": \"Twisted Pair\"}}," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \

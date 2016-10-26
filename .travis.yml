@@ -3,7 +3,7 @@ python:
     - 2.7
 
 install:
-    - pip django ipaddr pymongo configparser requests nose tox
+    - pip install django ipaddr pymongo configparser requests nose tox
 
 script:
     - tox

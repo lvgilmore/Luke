@@ -1,4 +1,4 @@
-#! /usr/bin/python2.7
+#! /usr/bin/python
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -12,7 +12,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-REQS = 'requirements'
-OS = 'os'
-OTHER_PROP = 'other_prop'
-DEFAULT_OS = 'Linux'
+from LukeClient.utils.Utils import produce_command
+
+
+class Ram(object):
+
+    def __init__(self):
+        self.ramSize = self.init_ram_size()
+
+        self.ramObject = {'Size': self.ramSize}
+
+    @staticmethod
+    def init_ram_size():
+        return produce_command("grep MemTotal /proc/meminfo | awk '{print $2}'")
