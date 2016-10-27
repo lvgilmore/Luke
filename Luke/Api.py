@@ -22,6 +22,7 @@ from logging import getLogger
 from Luke.BareMetal import BareMetal
 from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MRequestList import MRequestList
+from Luke.common import Status
 from .CommitWorkflow import commit
 from .matchMaker.MatchMaker import MatchMaker
 from .Request import Request
@@ -98,6 +99,7 @@ class Api(object):
         if best_match_request:
             bm, r = commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
                            request=best_match_request)
+            bare_metal.status = Status.matched
         else:
             logger.info("no best match found")
 

@@ -17,6 +17,8 @@ import os
 
 from ConfigParser import ConfigParser
 from logging import getLogger
+from uuid import uuid4
+
 from pymongo import MongoClient
 
 from Luke.utils.JsonUtils import convert_from_json_to_obj
@@ -38,3 +40,12 @@ class MList(object):
             json_obj['_id'] = json_obj.pop('id')
         logger.debug("appending id: " + json_obj['_id'] + " to collection" + collection)
         return self.database[collection].insert_one(json_obj).inserted_id
+
+    def _update_collection(self, criteria, variable, obj, collection):
+        return self.database[collection].update({'_id': criteria}, {"$set": {variable: obj}})
+
+    def _load(self, collection, id):
+        return self.database[collection].find_one({'_id': id})
+
+    def _delete(self, collection):
+        return self.database[collection].delete_many({})

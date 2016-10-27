@@ -14,9 +14,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
-from requests import put
+import polling as polling
+from requests import post
 from time import sleep
+from requests import get
+from requests import put
 
+from Luke.common import Status
 from LukeClient.Cpu import Cpu
 from LukeClient.Disks import Disks
 from LukeClient.Nics import Nics
@@ -34,7 +38,29 @@ serverObject = {'Vendor': server.vendor,
                 'Disks': server.serverDisks.disksObject}
 
 report = convert_to_json(serverObject)
-put("http://google.com/", report)
-while True:
-    print("I just did something amazing")
-    sleep(60)
+
+# bare_metal_id = post("http://localhost:{}/bare_metal/", report)
+bare_metal_id = None
+
+port = 8080
+status = None
+
+# Poll every 10 seconds
+baremetal = polling.poll(
+    lambda: get('http://localhost:{}/bare_metal/{}'.format(port, bare_metal_id)),
+    step=10,
+    poll_forever=True)
+
+if baremetal is not None and \
+                status is not baremetal['status']:
+    status = baremetal['status']
+
+    # update status
+    put('http://localhost:{}/bare_metal/{}/{}'.format(port, bare_metal_id, status))
+
+    if status is Status.matched:
+        print "status changed to matched"
+    elif status is Status.reboot:
+        print "status changed to reboot"
+    elif status is Status.done:
+        print "status changed to done"
