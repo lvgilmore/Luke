@@ -17,7 +17,7 @@ class TestMatchMaker(unittest.TestCase):
         self.api = Api()
 
     def tearDown(self):
-        os.remove('Requests.json')
+        self.api.request_list.database['requests'].delete_many({})
 
     def test_no_request(self):
         """
@@ -297,11 +297,11 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req1)
+        self.api.handle_new_request(req1, str(uuid.uuid4()))
         time.sleep(DELAY_SECONDS)
         self.api.handle_new_request(req_match1, req_id)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(req_match2)
+        self.api.handle_new_request(req_match2, str(uuid.uuid4()))
 
         best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
         self.assertEqual(best_request.id, req_id)

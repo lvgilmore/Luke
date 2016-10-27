@@ -14,6 +14,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Luke.MongoClient.MList import MList
+from Luke.Request import Request
 
 
 class MRequestList(MList):
@@ -22,3 +23,11 @@ class MRequestList(MList):
 
     def handle_new_request(self, request):
         return self._insert_to_collection(request, 'requests')
+
+    def load_requests(self):
+        json_reqs = self.database['requests'].find({})
+        reqs = []
+        for json_request in json_reqs:
+            req_id = json_request.pop('_id')
+            reqs.append(Request(json_req=json_request, req_id=req_id))
+        return reqs
