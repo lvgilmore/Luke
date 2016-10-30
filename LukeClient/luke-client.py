@@ -14,7 +14,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
-from requests import put
+from ConfigParser import ConfigParser
+from requests import put, get
 from time import sleep
 
 from LukeClient.Cpu import Cpu
@@ -22,9 +23,18 @@ from LukeClient.Disks import Disks
 from LukeClient.Nics import Nics
 from LukeClient.Ram import Ram
 from LukeClient.Server import Server
-from LukeClient.utils.Utils import convert_to_json
+from LukeClient.utils.Utils import convert_to_json, produce_command
 
-os.system("dhclient eth0")
+# get Luke's server uri
+configs = ConfigParser()
+configs.read('/etc/luke-client.conf')
+lukeUri = configs.get('default', 'SERVER-URI')
+
+# make sure we have connectivity, etc.
+for nic in produce_command("ifconfig -a | sed 's/[ \t].*//;/^\(lo:\|\s*$\)/d'").split():
+    os.system("dhclient {}".format(nic))
+
+# generate and send report
 server = Server(cpu=Cpu(), ram=Ram(), nics=Nics(), disks=Disks())
 serverObject = {'Vendor': server.vendor,
                 'Model': server.model,
@@ -32,9 +42,15 @@ serverObject = {'Vendor': server.vendor,
                 'Ram': server.serverRam.ramObject,
                 'NICs': server.serverNics.nicsObject,
                 'Disks': server.serverDisks.disksObject}
-
 report = convert_to_json(serverObject)
-put("http://google.com/", report)
-while True:
-    print("I just did something amazing")
-    sleep(60)
+bmid = put(url="{}/bare-metal".format(lukeUri), data=report).content
+
+status = get("{}/bare-metal/{}".format(lukeUri, bmid)).json()['status'].lower()
+if status == "matched":
+    # check what the fuck you should od
+    pass
+elif status == "reboot":
+    os.system("reboot")
+else:
+    # find a way to report error
+    pass

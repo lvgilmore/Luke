@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cp luke-client.py luke-client.service /tmp/
+cp luke-client.py luke-client.service luke-client.conf /tmp/
 
 #get and unpack the image
 wget -o /tmp/initrd.img http://magic-address/images/pxeboot/initrd.img
@@ -15,6 +15,9 @@ chmod +x usr/bin/luke-client.py
 #insert the srevice
 mv /tmp/luke-client.service usr/lib/systemd/system
 ln -s /usr/lib/systemd/system/luke-client.service etc/systemd/system/sysinit.target.wants/luke-client.service
+
+#insert configs
+mv /tmp/luke-client.conf etc/
 
 #insert dependencies
 cd /usr/lib/python2.7/site-packages
