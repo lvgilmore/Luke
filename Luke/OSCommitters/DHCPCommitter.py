@@ -50,6 +50,7 @@ class DHCPCommitter(OSCommitter):
             self.dhcp_config_file = self.parser.get(env, 'DHCP_CONF_FILE')
         else:
             self.dhcp_config_file = dhcp_file
+        logger.debug("dhcp conf file: {}".format(self.dhcp_config_file))
 
     def commit(self, bare_metal, request):
         bare_metal = DHCPCommitter._build_host(bare_metal)

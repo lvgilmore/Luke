@@ -17,6 +17,7 @@ from logging import getLogger
 from uuid import uuid4
 
 from Luke.common.Status import Status
+from Luke.utils.JsonUtils import convert_from_json_to_obj
 from .utils.Utils import locate_mac_in_log
 
 logger = getLogger(__name__)
@@ -27,7 +28,7 @@ class BareMetal(object):
         self.status = Status.nothing
 
         # load everything from the string
-        json_bare = loads(bare_metal_str)
+        json_bare = convert_from_json_to_obj(bare_metal_str)
         for key, value in json_bare.iteritems():
             self.__dict__[key] = value
 

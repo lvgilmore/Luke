@@ -15,7 +15,7 @@
 
 import os
 
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, NoSectionError
 from logging import getLogger
 from uuid import uuid4
 
@@ -30,8 +30,12 @@ logger = getLogger(__name__)
 class MList(object):
     def __init__(self):
         self.parser = ConfigParser()
-        self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
-        connection_uri = self.parser.get('mongodb', 'connection')
+        try:
+            self.parser.read(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))
+            connection_uri = self.parser.get('mongodb', 'connection')
+        except NoSectionError:
+            logger.debug("tring to open: {}, no section mongodb".format(
+                str(os.path.join(os.environ['LUKE_PATH'], "resources/config.conf"))))
         db_name = self.parser.get('mongodb', 'dbname')
         self.database = MongoClient(connection_uri)[db_name]
 
@@ -47,8 +51,8 @@ class MList(object):
     def _update_collection(self, criteria, variable, obj, collection):
         return self.database[collection].update({'_id': criteria}, {"$set": {variable: obj}})
 
-    def _load(self, collection, id):
-        return self.database[collection].find_one({'_id': id})
+    def _load(self, collection, id_to_load):
+        return self.database[collection].find_one({'_id': id_to_load})
 
     def _delete(self, collection):
         return self.database[collection].delete_many({})

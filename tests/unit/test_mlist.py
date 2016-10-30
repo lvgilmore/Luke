@@ -21,7 +21,9 @@ from pymongo.database import Database
 from unittest import TestCase
 from uuid import uuid4
 
+from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MList import MList
+from Luke.common.Status import Status
 
 
 class TestMatchMaker(TestCase):
@@ -63,7 +65,7 @@ class TestMatchMaker(TestCase):
 
     def test_bm(self):
         """
-        one request with requirements that match bare metal
+        one request with requirements that match bare metal, status changed to matched
         :return: request
         """
         req_id = str(uuid4())
@@ -94,4 +96,4 @@ class TestMatchMaker(TestCase):
         bm = BareMetal(bare_metal)
         self.api.handle_new_bare_metal(bm)
         result = self.mongo._load("bare_metals", bm.id)
-        # self.assertEqual(best_request.id, req_id)
+        self.assertEqual(result['status'], Status.matched)

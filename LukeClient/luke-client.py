@@ -13,6 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+from logging import getLogger
 
 import polling as polling
 from requests import post
@@ -20,6 +21,8 @@ from time import sleep
 from requests import get
 from requests import put
 
+from Luke.Api import logger
+from Luke.Request import Request
 from Luke.common import Status
 from LukeClient.Cpu import Cpu
 from LukeClient.Disks import Disks
@@ -37,17 +40,47 @@ serverObject = {'Vendor': server.vendor,
                 'NICs': server.serverNics.nicsObject,
                 'Disks': server.serverDisks.disksObject}
 
-report = convert_to_json(serverObject)
+# report = convert_to_json(serverObject)
+report = "{\"Vendor\": \"vend\"," \
+                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
+                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+                     " \"Ram\": {\"Size\": \"3062784\"}, " \
+                     "\"NICs\": {\"ens33\": " \
+                     "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+                     \"Type\": \"Twisted Pair\", \"ip\": \"192.168.0.4\"}}," \
+                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+                     "\"ip\": \"192.168.0.5\", \"Model\": \"mod\"}"
+port = 8000
 
-# bare_metal_id = post("http://localhost:{}/bare_metal/", report)
-bare_metal_id = None
 
-port = 8080
+req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
+                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
+              "\"Vendor\": \"vend\"}," \
+              "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
+              "\"NICs\": {\"ens33\": " \
+              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
+              \"Type\": \"Twisted Pair\"}}," \
+              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
+              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
+              "\"Model\": \"mod\", \"profile\": \"common\"}}"
+
+
+request = post("http://localhost:{}/request/".format(port), data={"request": req})
+
+print(str(report))
+
+# bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
+#                      data={"bare_metal": str(report)})
+bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
+                     data={"bare_metal": report}).content
+print(bare_metal_id)
+
 status = None
 
 # Poll every 10 seconds
 baremetal = polling.poll(
-    lambda: get('http://localhost:{}/bare_metal/{}'.format(port, bare_metal_id)),
+    lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)),
     step=10,
     poll_forever=True)
 

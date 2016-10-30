@@ -22,7 +22,8 @@ from logging import getLogger
 from Luke.BareMetal import BareMetal
 from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MRequestList import MRequestList
-from Luke.common import Status
+from Luke.common.Status import Status
+from Luke.utils.JsonUtils import convert_from_json_to_obj
 from .CommitWorkflow import commit
 from .matchMaker.MatchMaker import MatchMaker
 from .Request import Request
@@ -47,7 +48,8 @@ class Api(object):
         self.request_list = MRequestList()
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-        logger.info("start handling new request id: " + req_id)
+        req = req.POST.get("request")
+        logger.debug("start handling new request id: " + req_id + "request: " + req)
         json_req = JsonUtils.convert_from_json_to_obj(req)
         if self.check_if_req_valid(json_req):
             req = Request(json_req, req_id)
@@ -65,11 +67,16 @@ class Api(object):
         if isinstance(bare_metal, BareMetal):
             pass
         elif hasattr(bare_metal, 'META') and hasattr(bare_metal, 'POST'):
-            ip = bare_metal.META["REMOTE_ADDR"]
+            logger.debug("treating bare_metal as HttpRequest")
+            if 'ip' in convert_from_json_to_obj(bare_metal.POST.get("bare_metal")):
+                ip = json.loads(bare_metal.POST.get("bare_metal"))['ip']
+            else:
+                ip = bare_metal.META["REMOTE_ADDR"]
             if bare_metal.META["REMOTE_HOST"] != ip:
                 hostname = bare_metal.META["REMOTE_HOST"]
             else:
                 hostname = None
+            logger.debug("bare_metal_str " + str(bare_metal.POST))
             bare_metal = BareMetal(bare_metal_str=bare_metal.POST.get("bare_metal"),
                                    ip=ip, hostname=hostname)
         else:
@@ -97,10 +104,10 @@ class Api(object):
                 json_bare_metal, matched_requests_by_requirements)
 
         if best_match_request:
-            bm, r = commit(bare_metal=BareMetal(json.dumps(json_bare_metal)),
+            bm, r = commit(bare_metal=BareMetal(convert_from_json_to_obj(json_bare_metal)),
                            request=best_match_request)
-            bare_metal.status = Status.matched
+            self.bare_metal_list.update_status(Status.matched, bm_id)
         else:
             logger.info("no best match found")
 
-        return best_match_request
+        return best_match_request, bare_metal
