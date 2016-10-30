@@ -84,7 +84,7 @@ class Api(object):
 
         # read all requests from a file
         logger.debug("getting all request from file")
-        req_list = JsonUtils.read_json_from_file()
+        req_list = self.request_list.load_requests()
 
         # find all requests that matches the requirements
         matched_requests_by_requirements = \
@@ -104,7 +104,3 @@ class Api(object):
             logger.info("no best match found")
 
         return best_match_request
-
-
-if __name__ == "__main__":
-    pass

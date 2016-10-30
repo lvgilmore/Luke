@@ -2,3 +2,4 @@ django
 ipaddr
 requests
 configparser
+pymongo
