@@ -96,3 +96,7 @@ class TestMatchMaker(TestCase):
         self.api.handle_new_bare_metal(bm)
         result = self.mongo._load("bare_metals", bm.id)
         self.assertEqual(result['status'], Status.matched)
+
+    # def test_delete_collection(self):
+    #     self.mongo._delete('requests')
+    #     self.mongo._delete('bare_metals')

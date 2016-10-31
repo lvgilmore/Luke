@@ -12,25 +12,22 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import json
 import os
-from logging import getLogger
+import threading
 
-import polling as polling
+import time
 from requests import post
-from time import sleep
 from requests import get
 from requests import put
 
-from Luke.MongoClient.MList import MList
-from Luke.MongoClient.MRequestList import MRequestList
-from Luke.Request import Request
-from Luke.common import Status
+from Luke.common.Status import Status
 from LukeClient.Cpu import Cpu
 from LukeClient.Disks import Disks
 from LukeClient.Nics import Nics
+from LukeClient.PollingStatus import PollingStatus
 from LukeClient.Ram import Ram
 from LukeClient.Server import Server
-from LukeClient.utils.Utils import convert_to_json
 
 os.system("dhclient eth0")
 server = Server(cpu=Cpu(), ram=Ram(), nics=Nics(), disks=Disks())
@@ -40,6 +37,7 @@ serverObject = {'Vendor': server.vendor,
                 'Ram': server.serverRam.ramObject,
                 'NICs': server.serverNics.nicsObject,
                 'Disks': server.serverDisks.disksObject}
+port = 8000
 
 # report = convert_to_json(serverObject)
 report = "{\"Vendor\": \"vend\"," \
@@ -52,8 +50,6 @@ report = "{\"Vendor\": \"vend\"," \
                      " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"ip\": \"192.168.0.5\", \"Model\": \"mod\"}"
-port = 8000
-
 
 req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
                 \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
@@ -77,25 +73,22 @@ bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
                      data={"bare_metal": report}).content
 print(bare_metal_id)
 
-status = None
+time.sleep(3)
+polling_thread = PollingStatus(port, bare_metal_id)
+polling_thread.start()
 
-# Poll every 10 seconds
-baremetal = polling.poll(
-    lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)).content,
-    step=10,
-    poll_forever=True)
-print baremetal
+# # Poll every 3 seconds
+# bm = polling.poll(
+#     lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)),
+#     step=3,
+#     poll_forever=True)
+#
+# baremetal_status = str(json.loads(bm.content)['status'])
+#
+# print "bare metal is: " + baremetal_status
 
-if baremetal is not None and \
-                status is not baremetal['status']:
-    status = baremetal['status']
 
-    # update status
-    put('http://localhost:{}/bare_metal/{}/{}'.format(port, bare_metal_id, status))
 
-    if status is Status.matched:
-        print "status changed to matched"
-    elif status is Status.reboot:
-        print "status changed to reboot"
-    elif status is Status.done:
-        print "status changed to done"
+
+
+

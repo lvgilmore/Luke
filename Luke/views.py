@@ -1,3 +1,4 @@
+import json
 from logging import getLogger
 
 from django.core.wsgi import get_wsgi_application
@@ -47,16 +48,16 @@ def get_bm(request, bm_id):
 
 
 @csrf_exempt
-@require_http_methods(["PUT"])
-def update_status(request, bm_status):
+@require_http_methods(["POST"])
+def update_status(request, bm_id):
     mb = MBareMetalList()
-    result = mb.update_status(bm_status)
+    result = mb.update_status(request.POST['status'], bm_id)
     return check_result(result)
 
 
 def check_result(result):
     if result:
-        return HttpResponse(content=result, status=200)
+        return HttpResponse(content=json.dumps(result), status=200)
     else:
         return HttpResponse(content="invalid request", status=500)
 
