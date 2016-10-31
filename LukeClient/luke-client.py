@@ -16,6 +16,9 @@ import json
 import os
 import threading
 
+from ConfigParser import ConfigParser
+from requests import put, get
+from time import sleep
 import time
 from requests import post
 from requests import get
@@ -28,8 +31,18 @@ from LukeClient.Nics import Nics
 from LukeClient.PollingStatus import PollingStatus
 from LukeClient.Ram import Ram
 from LukeClient.Server import Server
+from LukeClient.utils.Utils import convert_to_json, produce_command
 
-os.system("dhclient eth0")
+# get Luke's server uri
+configs = ConfigParser()
+configs.read('/etc/luke-client.conf')
+lukeUri = configs.get('default', 'SERVER-URI')
+
+# make sure we have connectivity, etc.
+for nic in produce_command("ifconfig -a | sed 's/[ \t].*//;/^\(lo:\|\s*$\)/d'").split():
+    os.system("dhclient {}".format(nic))
+
+# generate and send report
 server = Server(cpu=Cpu(), ram=Ram(), nics=Nics(), disks=Disks())
 serverObject = {'Vendor': server.vendor,
                 'Model': server.model,
@@ -39,45 +52,12 @@ serverObject = {'Vendor': server.vendor,
                 'Disks': server.serverDisks.disksObject}
 port = 8000
 
-# report = convert_to_json(serverObject)
-report = "{\"Vendor\": \"vend\"," \
-                     " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
-                     \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
-                     " \"Ram\": {\"Size\": \"3062784\"}, " \
-                     "\"NICs\": {\"ens33\": " \
-                     "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
-                     \"Type\": \"Twisted Pair\", \"ip\": \"192.168.0.4\"}}," \
-                     " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
-                     "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-                     "\"ip\": \"192.168.0.5\", \"Model\": \"mod\"}"
-
-req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
-                \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
-              "\"Vendor\": \"vend\"}," \
-              "\"other_prop\": {\"Ram\": {\"Size\": \"3062784\"}, " \
-              "\"NICs\": {\"ens33\": " \
-              "{\"Speed\": \"1000Mb/s\", \"Mac\": \"00:0c:29:3d:5e:ce\", \
-              \"Type\": \"Twisted Pair\"}}," \
-              " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
-              "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
-              "\"Model\": \"mod\", \"profile\": \"common\"}}"
+report = convert_to_json(serverObject)
 
 
-request = post("http://localhost:{}/request/".format(port), data={"request": req})
-
-print(str(report))
-
-# bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
-#                      data={"bare_metal": str(report)})
 bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
                      data={"bare_metal": report}).content
 bare_metal_id = bare_metal_id[1:-1]
-print(bare_metal_id)
 
 polling_thread = PollingStatus(port, bare_metal_id)
 polling_thread.start()
-
-
-
-
-

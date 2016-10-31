@@ -19,7 +19,7 @@ class Nics(object):
 
     def __init__(self):
 
-        self.allDevices = produce_command("ifconfig -a | sed 's/[ \t].*//;/^\(lo\|\)$/d'")
+        self.allDevices = produce_command("ifconfig -a | sed 's/[ \t].*//;/^\(lo:\|\s*$\)/d'")
         self.nicsObject = {}
         self.get_all_nics_list()
 
