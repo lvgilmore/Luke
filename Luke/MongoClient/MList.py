@@ -52,7 +52,10 @@ class MList(object):
         return self.database[collection].update({'_id': criteria}, {"$set": {variable: obj}})
 
     def _load(self, collection, id_to_load):
-        return self.database[collection].find_one({'_id': id_to_load})
+        try:
+            return self.database[collection].find_one({'_id': id_to_load})
+        except Exception:
+            logger.warning("id not found in db: {}".format(id_to_load))
 
     def _delete(self, collection):
         return self.database[collection].delete_many({})

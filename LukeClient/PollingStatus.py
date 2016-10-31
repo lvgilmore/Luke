@@ -22,8 +22,7 @@ class PollingStatus(threading.Thread):
 
     def run(self):
         while True:
-            bm = get('http://localhost:{}/baremetal/{}'.format(self.port, "f5ee4f91-236c-48b6-9b55-eb02509a8bb6"))
-            print (bm.content)
+            bm = get('http://localhost:{}/baremetal/{}'.format(self.port, self.bare_metal_id))
             # if baremetal found
             if bm.content:
                 baremetal_status = int(json.loads(bm.content)['status'])

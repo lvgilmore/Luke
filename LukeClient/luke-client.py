@@ -71,22 +71,11 @@ print(str(report))
 #                      data={"bare_metal": str(report)})
 bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
                      data={"bare_metal": report}).content
+bare_metal_id = bare_metal_id[1:-1]
 print(bare_metal_id)
 
-time.sleep(3)
 polling_thread = PollingStatus(port, bare_metal_id)
 polling_thread.start()
-
-# # Poll every 3 seconds
-# bm = polling.poll(
-#     lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)),
-#     step=3,
-#     poll_forever=True)
-#
-# baremetal_status = str(json.loads(bm.content)['status'])
-#
-# print "bare metal is: " + baremetal_status
-
 
 
 
