@@ -21,7 +21,8 @@ from time import sleep
 from requests import get
 from requests import put
 
-from Luke.Api import logger
+from Luke.MongoClient.MList import MList
+from Luke.MongoClient.MRequestList import MRequestList
 from Luke.Request import Request
 from Luke.common import Status
 from LukeClient.Cpu import Cpu
@@ -80,9 +81,10 @@ status = None
 
 # Poll every 10 seconds
 baremetal = polling.poll(
-    lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)),
+    lambda: get('http://localhost:{}/baremetal/{}'.format(port, bare_metal_id)).content,
     step=10,
     poll_forever=True)
+print baremetal
 
 if baremetal is not None and \
                 status is not baremetal['status']:

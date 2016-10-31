@@ -27,11 +27,7 @@ def add_req(request):
     if request.method == "POST":
         # result = api.handle_new_request(request.POST.get("request"))
         result = api.handle_new_request(req=request)
-
-        if result:
-            return HttpResponse(content=result, status=200)
-        else:
-            return HttpResponse(content="invalid request", status=500)
+        return check_result(result)
 
 
 @csrf_exempt
@@ -39,10 +35,7 @@ def add_req(request):
 def add_bm(request):
     api = get_api()
     result = api.handle_new_bare_metal(bare_metal=request)[1].id
-    if result:
-        return HttpResponse(content=result, status=200)
-    else:
-        return HttpResponse(content="invalid request", status=500)
+    return check_result(result)
 
 
 @csrf_exempt
@@ -50,10 +43,7 @@ def add_bm(request):
 def get_bm(request, bm_id):
     mb = MBareMetalList()
     result = mb.load_bare_metal(bm_id)
-    if result:
-        return HttpResponse(content=result, status=200)
-    else:
-        return HttpResponse(content="invalid request", status=500)
+    return check_result(result)
 
 
 @csrf_exempt
@@ -61,20 +51,14 @@ def get_bm(request, bm_id):
 def update_status(request, bm_status):
     mb = MBareMetalList()
     result = mb.update_status(bm_status)
+    return check_result(result)
+
+
+def check_result(result):
     if result:
         return HttpResponse(content=result, status=200)
     else:
         return HttpResponse(content="invalid request", status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def test1(request):
-    logger.debug(str(request.POST))
-    try:
-        logger.debug(str(request.POST.get('shit')))
-    except Exception:
-        logger.debug("cant get shit")
 
 
 def get_api():

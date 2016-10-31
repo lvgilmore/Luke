@@ -21,7 +21,6 @@ from pymongo.database import Database
 from unittest import TestCase
 from uuid import uuid4
 
-from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MList import MList
 from Luke.common.Status import Status
 
