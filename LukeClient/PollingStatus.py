@@ -3,10 +3,13 @@ import threading
 
 import time
 
+from Luke.Api import logger
 from requests import get
 from requests import post
 
 from Luke.common.Status import Status
+
+SLEEP_SEC = 3
 
 
 class PollingStatus(threading.Thread):
@@ -25,28 +28,33 @@ class PollingStatus(threading.Thread):
             bm = get('http://localhost:{}/baremetal/{}'.format(self.port, self.bare_metal_id))
             # if baremetal found
             if bm.content:
-                baremetal_status = int(json.loads(bm.content)['status'])
-                print baremetal_status
-                if self.status is not baremetal_status:
-                    self.check_status(baremetal_status)
+                baremetal_status = str(json.loads(bm.content)['status'])
+                logger.debug("baremetal status from server is : " + baremetal_status)
+                # check if status changed
+                if self.status != baremetal_status:
+                    self.update_status(baremetal_status)
+            time.sleep(SLEEP_SEC)
 
-            time.sleep(3)
+    def update_status(self, baremetal_status):
+        valid = True
 
-    def check_status(self, baremetal_status):
-        print "old status: " + str(self.status)
-
-        self.status = baremetal_status
-        print "new status: " + str(self.status)
-
-        # update status
-        post('http://localhost:{}/baremetal/changestatus/{}/'.format(self.port, self.bare_metal_id),
-            data={"status": str(self.status)})
-
-        if self.status is Status.matched:
+        if baremetal_status == Status.matched:
+            # change status to be something else
+            self.status = Status.reboot
             print "status changed to matched"
-        elif self.status is Status.reboot:
-            print "status changed to reboot"
-        elif self.status is Status.done:
-            print "status changed to done"
+        elif baremetal_status == Status.reboot:
+            # change status to be something else
+            self.status = Status.done
+        elif baremetal_status == Status.done:
+            # change status to be something else
+            self.status = Status.nothing
         else:
-            print "status is nothing"
+            valid = False
+            logger.debug("unknown baremetal status: " + baremetal_status + " was passed")
+
+        if valid:
+            logger.debug("baremetal new status is: " + self.status)
+
+            # update status
+            post('http://localhost:{}/baremetal/changestatus/{}/'.format(self.port, self.bare_metal_id),
+                data={"status": str(self.status)})

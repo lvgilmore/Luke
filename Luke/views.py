@@ -1,6 +1,8 @@
 import json
 from logging import getLogger
 
+from Luke.MongoClient.MRequestList import MRequestList
+from Luke.common.Status import Status
 from django.core.wsgi import get_wsgi_application
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,11 +26,11 @@ def index(request):
 @require_http_methods(["POST", "GET"])
 def add_req(request):
     api = get_api()
-
     if request.method == "POST":
-        # result = api.handle_new_request(request.POST.get("request"))
         result = api.handle_new_request(req=request)
-        return check_result(result)
+    elif request.method == "GET":
+        result = MRequestList().load_requests()
+    return check_result(result)
 
 
 @csrf_exempt
@@ -50,8 +52,11 @@ def get_bm(request, bm_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def update_status(request, bm_id):
+    result = None
     mb = MBareMetalList()
-    result = mb.update_status(request.POST['status'], bm_id)
+    status = request.POST['status']
+    if Status.is_status_valid(status):
+        result = mb.update_status(status, bm_id)
     return check_result(result)
 
 
