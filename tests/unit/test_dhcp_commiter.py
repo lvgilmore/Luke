@@ -47,7 +47,7 @@ subnet 192.168.0.0 netmask 255.255.255.0{
 class TestDHCPCommiter(TestCase):
     def setUp(self):
         self.parser = ConfigParser()
-        if 'LUKE_PATH' not in os.environ or os.environ['LUKE_PATH' == ""]:
+        if 'LUKE_PATH' not in os.environ or os.environ['LUKE_PATH'] == "":
             os.environ['LUKE_PATH'] = os.path.join(os.path.dirname(__file__), "../../")
         self.dhcp_cong_file = os.path.join(os.environ['LUKE_PATH'], "tests/helpers/dhcp-example.conf")
         self.commiter = DHCPCommitter(self.dhcp_cong_file)

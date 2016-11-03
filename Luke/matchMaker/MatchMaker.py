@@ -88,7 +88,6 @@ class MatchMaker(object):
         :param d2:
         :return:
         """
-        logger.debug("start calculating score")
         if isinstance(d1, dict) and isinstance(d2, dict):
             for key in d1.keys():
                 if isinstance(d1[key], dict):
@@ -102,7 +101,6 @@ class MatchMaker(object):
         elif d1 == d2:
             score = self.get_score_value(DEFAULT_SECTION, section)
 
-        logger.debug("calculated score is: " + str(score))
         return score
 
     def check_if_different(self, d1, d2):

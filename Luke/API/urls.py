@@ -16,13 +16,15 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-import Luke
-
-from Luke.views import add_req
+from Luke.views import *
 from Luke.views import index
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', index, name='index'),
     url(r'^request', add_req, name='addReq'),
+    url(r'^baremetal/$', add_bm, name='addBm'),
+    url(r'^baremetal/(?P<bm_id>[-0-9a-z]+)/$', get_bm, name='getBm'),
+    url(r'^baremetal/(?P<bm_id>[-0-9a-z]+)/status/$',
+        update_status, name='updateStatus'),
 ]

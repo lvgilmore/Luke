@@ -22,3 +22,13 @@ class MBareMetalList(MList):
 
     def handle_new_bare_metal(self, bare_metal):
         return self._insert_to_collection(bare_metal, 'bare_metals')
+
+    def load_bare_metal(self, bm_id):
+        return self._load('bare_metals', bm_id)
+
+    def update_status(self, new_status, bm_id):
+        return self._update_collection(criteria=bm_id, variable='status', obj=new_status, collection='bare_metals')
+
+    def load_status(self, bm_id):
+        res = self._load('bare_metals', bm_id)
+        return res['status']
