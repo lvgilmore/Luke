@@ -16,7 +16,6 @@ import json
 import logging
 import os
 import uuid
-
 from logging import getLogger
 
 from Luke.BareMetal import BareMetal
@@ -24,9 +23,10 @@ from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MRequestList import MRequestList
 from Luke.common.Status import Status
 from Luke.utils.JsonUtils import convert_from_json_to_obj
+
 from .CommitWorkflow import commit
-from .matchMaker.MatchMaker import MatchMaker
 from .Request import Request
+from .matchMaker.MatchMaker import MatchMaker
 from .utils import JsonUtils
 
 REQUIREMENTS = 'requirements'
@@ -47,13 +47,13 @@ class Api(object):
         self.bare_metal_list = MBareMetalList()
         self.request_list = MRequestList()
 
-    def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-        if 'request' not in req.data:
-            logger.debug('request not in Request object')
-            return False
+    def handle_new_request(self, request):
+        if "request_id" in request.POST:
+            req_id = request.POST.get("request_id")
         else:
-            # req = req.POST.get("request")
-            req = req.data["request"]
+            req_id = str(uuid.uuid4())
+        if "request" in request.POST:
+            req = request.POST.get("request")
             logger.debug("start handling new request id: " + req_id + "request: " + req)
             json_req = JsonUtils.convert_from_json_to_obj(req)
             if self.check_if_req_valid(json_req):
@@ -63,6 +63,8 @@ class Api(object):
             else:
                 logger.error("request is not in valid format")
                 return False
+        logger.error("no request passed")
+        return False
 
     @staticmethod
     def check_if_req_valid(req):

@@ -1,13 +1,11 @@
 import json
 import threading
-
 import time
 
 from Luke.Api import logger
+from Luke.common.Status import Status
 from requests import get
 from requests import post
-
-from Luke.common.Status import Status
 
 SLEEP_SEC = 3
 
@@ -56,5 +54,5 @@ class PollingStatus(threading.Thread):
             logger.debug("baremetal new status is: " + self.status)
 
             # update status
-            post('http://localhost:{}/baremetal/changestatus/{}/'.format(self.port, self.bare_metal_id),
+            post('http://localhost:{}/baremetal/{}/status/'.format(self.port, self.bare_metal_id),
                 data={"status": str(self.status)})

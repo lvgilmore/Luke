@@ -1,15 +1,13 @@
 import json
-from logging import getLogger
 
+from Api import Api
+from Luke.MongoClient.MBareMetalList import MBareMetalList
 from Luke.MongoClient.MRequestList import MRequestList
 from Luke.common.Status import Status
 from django.core.wsgi import get_wsgi_application
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
-from Api import Api, logger
-from Luke.MongoClient.MBareMetalList import MBareMetalList
 
 
 def index(request):
@@ -27,7 +25,7 @@ def index(request):
 def add_req(request):
     api = get_api()
     if request.method == "POST":
-        result = api.handle_new_request(req=request)
+        result = api.handle_new_request(request=request)
     elif request.method == "GET":
         result = MRequestList().load_requests()
     return check_result(result)
@@ -57,6 +55,7 @@ def update_status(request, bm_id):
     status = request.POST['status']
     if Status.is_status_valid(status):
         result = mb.update_status(status, bm_id)
+
     return check_result(result)
 
 

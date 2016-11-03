@@ -12,22 +12,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import json
 import os
-import threading
 
-import time
-from requests import post
-from requests import get
-from requests import put
-
-from Luke.common.Status import Status
 from LukeClient.Cpu import Cpu
 from LukeClient.Disks import Disks
 from LukeClient.Nics import Nics
 from LukeClient.PollingStatus import PollingStatus
 from LukeClient.Ram import Ram
 from LukeClient.Server import Server
+from requests import post
 
 os.system("dhclient eth0")
 server = Server(cpu=Cpu(), ram=Ram(), nics=Nics(), disks=Disks())
@@ -61,7 +54,6 @@ req = "{\"requirements\": {\"Cpu\": {\"Sockets\": \"1\",\
               " \"Disks\": {\"sda\": {\"Vendor\": \"VMware\", \"Size\": \"2\"}, " \
               "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
               "\"Model\": \"mod\", \"profile\": \"common\"}}"
-
 
 request = post("http://localhost:{}/request/".format(port), data={"request": req})
 
