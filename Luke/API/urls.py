@@ -25,6 +25,6 @@ urlpatterns = [
     url(r'^request', add_req, name='addReq'),
     url(r'^baremetal/$', add_bm, name='addBm'),
     url(r'^baremetal/(?P<bm_id>[-0-9a-z]+)/$', get_bm, name='getBm'),
-    url(r'^baremetal/changestatus/(?P<bm_id>[-0-9a-z]+)/$',
+    url(r'^baremetal/(?P<bm_id>[-0-9a-z]+)/status/$',
         update_status, name='updateStatus'),
 ]

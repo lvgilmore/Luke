@@ -48,16 +48,21 @@ class Api(object):
         self.request_list = MRequestList()
 
     def handle_new_request(self, req, req_id=str(uuid.uuid4())):
-        req = req.POST.get("request")
-        logger.debug("start handling new request id: " + req_id + "request: " + req)
-        json_req = JsonUtils.convert_from_json_to_obj(req)
-        if self.check_if_req_valid(json_req):
-            req = Request(json_req, req_id)
-            self.request_list.handle_new_request(request=req)
-            return req_id
-        else:
-            logger.error("request is not in valid format")
+        if 'request' not in req.data:
+            logger.debug('request not in Request object')
             return False
+        else:
+            # req = req.POST.get("request")
+            req = req.data["request"]
+            logger.debug("start handling new request id: " + req_id + "request: " + req)
+            json_req = JsonUtils.convert_from_json_to_obj(req)
+            if self.check_if_req_valid(json_req):
+                req = Request(json_req, req_id)
+                self.request_list.handle_new_request(request=req)
+                return req_id
+            else:
+                logger.error("request is not in valid format")
+                return False
 
     @staticmethod
     def check_if_req_valid(req):

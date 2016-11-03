@@ -5,6 +5,7 @@ import uuid
 
 from Luke.Api import Api
 from Luke.BareMetal import BareMetal
+from requests import Request
 
 DELAY_SECONDS = 2
 
@@ -35,7 +36,7 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
 
         self.assertEqual(best_request, None)
 
@@ -44,6 +45,8 @@ class TestMatchMaker(unittest.TestCase):
         got new bare metal, no requests in file
         :return: no best match
         """
+        req = "{}"
+
         bare_metal = "{\"Vendor\": \"vend\"," \
                      " \"Cpu\": {\"Sockets\": \"1\", \"Arch\": \"x86_64\", \
                      \"Speed\": \"2201.000\", \"Cores\": \"1\"}," \
@@ -55,8 +58,8 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request("{}")
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
 
         self.assertEqual(best_request, None)
 
@@ -88,8 +91,8 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req)
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
 
         self.assertEqual(best_request, None)
 
@@ -117,8 +120,8 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req)
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
 
         self.assertEqual(best_request, None)
 
@@ -150,8 +153,8 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req, req_id)
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}), req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request.id, req_id)
 
     def test_match2(self):
@@ -193,10 +196,10 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req1, req_id1)
-        self.api.handle_new_request(req2)
+        self.api.handle_new_request(Request(method='POST', data={"request": req1}), req_id1)
+        self.api.handle_new_request(Request(method='POST', data={"request": req2}))
 
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request.id, req_id1)
 
     def test_match_by_time(self):
@@ -239,11 +242,11 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req1, req_id1)
+        self.api.handle_new_request(Request(method='POST', data={"request": req1}), req_id1)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(req2, req_id2)
+        self.api.handle_new_request(Request(method='POST', data={"request": req2}), req_id2)
 
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request.id, req_id1)
 
     def test_match_by_time_middle_match(self):
@@ -297,13 +300,13 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req1, str(uuid.uuid4()))
+        self.api.handle_new_request(Request(method='POST', data={"request": req1}), str(uuid.uuid4()))
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(req_match1, req_id)
+        self.api.handle_new_request(Request(method='POST', data={"request": req_match1}), req_id)
         time.sleep(DELAY_SECONDS)
-        self.api.handle_new_request(req_match2, str(uuid.uuid4()))
+        self.api.handle_new_request(Request(method='POST', data={"request": req_match2}), str(uuid.uuid4()))
 
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request.id, req_id)
 
     def test_baremetal_empty(self):
@@ -325,8 +328,8 @@ class TestMatchMaker(unittest.TestCase):
 
         bare_metal = "{}"
 
-        self.api.handle_new_request(req, req_id)
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}), req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request, None)
 
     def test_request_not_valid(self):
@@ -348,6 +351,6 @@ class TestMatchMaker(unittest.TestCase):
                      "\"sr0\": {\"Vendor\": \"VMware\", \"Size\": \"5\"}}, " \
                      "\"Model\": \"mod\"}"
 
-        self.api.handle_new_request(req, req_id)
-        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))
+        self.api.handle_new_request(Request(method='POST', data={"request": req}), req_id)
+        best_request = self.api.handle_new_bare_metal(BareMetal(bare_metal))[0]
         self.assertEqual(best_request, None)

@@ -1,3 +1,4 @@
+*/dhcp-example.conf
 *.pyc
 pbr*.egg/
 setuptools*.egg/

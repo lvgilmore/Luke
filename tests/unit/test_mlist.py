@@ -23,6 +23,7 @@ from uuid import uuid4
 
 from Luke.MongoClient.MList import MList
 from Luke.common.Status import Status
+from requests import Request
 
 
 class TestMatchMaker(TestCase):
@@ -91,7 +92,7 @@ class TestMatchMaker(TestCase):
                      "\"Model\": \"mod\"}"
 
         self.api = Api()
-        self.api.handle_new_request(req, req_id)
+        self.api.handle_new_request(Request(method='POST', data={"request": req}), req_id)
         bm = BareMetal(bare_metal)
         self.api.handle_new_bare_metal(bm)
         result = self.mongo._load("bare_metals", bm.id)
