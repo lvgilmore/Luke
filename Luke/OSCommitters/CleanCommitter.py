@@ -14,6 +14,8 @@
 from logging import getLogger
 
 from Luke.OSCommitters.DHCPCommitter import OSCommitter
+from Luke.common.Status import Status
+from re import sub
 
 logger = getLogger(__name__)
 
@@ -24,7 +26,7 @@ class CleanCommitter(OSCommitter):
 
     def commit(self, bare_metal, request):
         ret_value = True
-        bare_metal.__dict__['status'] = "matched"
+        bare_metal.__dict__['status'] = Status.matched
         bare_metal.__dict__['action'] = "run"
         if "image" in request.other_prop:
             bare_metal.__dict__["image_url"] = request.other_prop["image"]["url"]
@@ -33,4 +35,22 @@ class CleanCommitter(OSCommitter):
         else:
             logger.warn("could not resolve url from bm {}, request {}".format(bare_metal.id, request.id))
             ret_value = False
+        bare_metal.__dict__['run_command'] = CleanCommitter._build_command(url=bare_metal.image_url)
         return ret_value
+
+    @staticmethod
+    def _build_command(url):
+        protocol = url.split('://')[0]
+        command = ""
+        if protocol == 'http':
+            command = "wget -o /dev/sda {}".format(url)
+        elif protocol == 'scp':
+            path = sub('^[^:]*://', '', url)
+            command = "scp {} - | dd of=/dev/sda".format(path)
+        elif protocol == 'ssh':
+            host = url.split(':')[1]
+            if url.split(':')[2]:
+                command = "ssh {} 'dd if={}' | dd of=/dev/sda".format(host, url.split(':')[2])
+            else:
+                command = "ssh {} 'dd if=/dev/sda' | dd of=/dev/sda".format(host)
+        return command

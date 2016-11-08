@@ -12,19 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import json
+
 import os
-import threading
 
 from ConfigParser import ConfigParser
-from requests import put, get
-from time import sleep
-import time
 from requests import post
-from requests import get
-from requests import put
 
-from Luke.common.Status import Status
 from LukeClient.Cpu import Cpu
 from LukeClient.Disks import Disks
 from LukeClient.Nics import Nics
@@ -50,14 +43,14 @@ serverObject = {'Vendor': server.vendor,
                 'Ram': server.serverRam.ramObject,
                 'NICs': server.serverNics.nicsObject,
                 'Disks': server.serverDisks.disksObject}
-port = 8000
+
 
 report = convert_to_json(serverObject)
 
 
-bare_metal_id = post("http://localhost:{}/baremetal/".format(port),
+bare_metal_id = post("{}/baremetal/".format(lukeUri),
                      data={"bare_metal": report}).content
 bare_metal_id = bare_metal_id[1:-1]
 
-polling_thread = PollingStatus(port, bare_metal_id)
+polling_thread = PollingStatus(lukeUri, bare_metal_id)
 polling_thread.start()
